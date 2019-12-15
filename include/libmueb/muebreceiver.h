@@ -1,11 +1,13 @@
 #ifndef MUEBRECEIVER_H
 #define MUEBRECEIVER_H
 
+#include <QImage>
 #include <QObject>
 #include <QUdpSocket>
-#include <QImage>
 
-class MUEBReceiver : public QObject {
+#include "libmueb_global.h"
+
+class LIBMUEB_EXPORT MUEBReceiver : public QObject {
   Q_OBJECT
 
   QUdpSocket socket_;

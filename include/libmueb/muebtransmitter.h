@@ -1,12 +1,14 @@
 #ifndef MUEBTRANSMITTER_H
 #define MUEBTRANSMITTER_H
 
+#include <QImage>
 #include <QObject>
 #include <QString>
 #include <QUdpSocket>
-#include <QImage>
 
-class MUEBTransmitter : public QObject {
+#include "libmueb_global.h"
+
+class LIBMUEB_EXPORT MUEBTransmitter : public QObject {
   Q_OBJECT
 
   QUdpSocket socket_;
