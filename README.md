@@ -1,4 +1,4 @@
-# MUEB
+# libmueb
 Network library for Schönherz Mátrix packet sending
 
 ## Prerequisites
@@ -8,7 +8,7 @@ Build tools for Qt
 
 ## How to build
 Simply run
-```
+```bash
 qmake
 make
 ```
