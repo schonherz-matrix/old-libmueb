@@ -7,20 +7,19 @@
 
 #include "libmueb_global.h"
 
-class LIBMUEB_EXPORT MUEBReceiver : public QObject {
+class LIBMUEB_EXPORT MuebReceiver : public QObject {
   Q_OBJECT
 
-  QUdpSocket socket_;
-  uint16_t port_;
-  QImage frame_;
-
  public:
-  explicit MUEBReceiver(QObject *parent = nullptr, uint16_t port = 10000);
+  explicit MuebReceiver(QObject* parent = nullptr);
 
  signals:
   void frameChanged(QImage f);
 
- public slots:
+ private:
+  QUdpSocket m_socket{this};
+  quint16 m_port = libmueb::defaults::port;
+  QImage m_frame{libmueb::defaults::frame};
   void readPendingDatagrams();
 };
 

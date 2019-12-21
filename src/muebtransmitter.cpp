@@ -1,55 +1,83 @@
 #include "muebtransmitter.h"
 
-MUEBTransmitter::MUEBTransmitter(QObject *parent, QString addr, uint16_t port)
-    : QObject(parent), socket_(this), address_(addr), port_(port) {
-  qInfo() << "UDP Socket will send frame to " << address_.toString();
+#include <QByteArray>
+
+MuebTransmitter::MuebTransmitter(QObject *parent) : QObject(parent) {
+  qInfo() << "UDP Socket will send frame to" << m_targetAddress.toString();
 }
 
-// PN = package number
-// wn = window number
-inline static void CreatePackage(QImage f, uint8_t PN, uint8_t out[]) {
-  out[0] = 1;
-  out[1] = PN + 1;  // 1, 2, 3, 4
+void MuebTransmitter::sendFrame(QImage frame) {
+  using namespace libmueb::defaults;
 
-  // PN * 52: wn = 0, 52, 104, 156
-  // (PN + 1)*52: wn = 52, 104, 156, 208
-  // (PN + 1)*52
-  for (uint8_t wn = PN * 52, i = 0; wn < (PN + 1) * 52; ++wn, ++i) {
-    // wn = 0, i = 0
-
-    QColor leftTop, rightTop, leftBottom, rigthBottom;  // one side
-
-    // read frame
-    //                              x                   y
-    leftTop = f.pixelColor((wn % 16) * 2 + 0, (wn / 16) * 2 + 0);
-    rightTop = f.pixelColor((wn % 16) * 2 + 1, (wn / 16) * 2 + 0);
-    leftBottom = f.pixelColor((wn % 16) * 2 + 0, (wn / 16) * 2 + 1);
-    rigthBottom = f.pixelColor((wn % 16) * 2 + 1, (wn / 16) * 2 + 1);
-
-    // start from the 2 index see out[0], out[1]
-    // 6 item one window
-    // 0-5 offset from the start of the window
-    out[i * 6 + 0 + 2] = ((leftTop.red() >> 1) & 0x70) | (leftTop.green() >> 5);
-    out[i * 6 + 1 + 2] = ((leftTop.blue() >> 1) & 0x70) | (rightTop.red() >> 5);
-    out[i * 6 + 2 + 2] = ((rightTop.green() >> 1) & 0x70) | (rightTop.blue() >> 5);
-
-    out[i * 6 + 3 + 2] = ((leftBottom.red() >> 1) & 0x70) | (leftBottom.green() >> 5);
-    out[i * 6 + 4 + 2] = ((leftBottom.blue() >> 1) & 0x70) | (rigthBottom.red() >> 5);
-    out[i * 6 + 5 + 2] = ((rigthBottom.green() >> 1) & 0x70) | (rigthBottom.blue() >> 5);
-  }
-}
-
-void MUEBTransmitter::sendFrame(QImage frame) {
-  if (frame.width() != 32 || frame.height() != 26) {
-    qWarning() << "[MUEBTransmitter] Ez a csomag FOS!";
+  if (frame.width() != width || frame.height() != height) {
+    qWarning() << "[MuebTransmitter] Frame has invalid size" << frame.size()
+               << "must be" << libmueb::defaults::frame.size();
     return;
   }
 
-  uint8_t data[314] = {};
+  const auto frameData = frame.bits();
+  char packageNumber = 1;
+  auto prevBlueIdx = 0;
 
-  for (uint8_t i = 0; i < 4; i += 1) {
-    CreatePackage(frame, i, data);
+  QByteArray datagram;
+  datagram.reserve(maxWindowPerDatagram * windowByteSize + packetHeaderSize);
 
-    socket_.writeDatagram(reinterpret_cast<char *>(data), 314, address_, 10000);
+  // Packet header
+  datagram.append(1);
+  datagram.append(packageNumber);
+
+  for (int windowIdx = 0; windowIdx < windows; ++windowIdx) {
+    auto row = (windowIdx / windowPerRow) * verticalPixelUnit;
+    auto col = (windowIdx % windowPerRow) * horizontalPixelUnit;
+
+    for (int y = 0; y < verticalPixelUnit; ++y) {
+      for (int x = 0; x < horizontalPixelUnit * 3; x += 3) {
+        auto redIdx = (width * 3) * (row + y) + (col * 3 + x);
+
+        if (colorDepth == 3 || colorDepth == 4) {  // 3 bit, 4 bit compression
+          if (x % 2 == 0) {
+            datagram.append(frameData[redIdx] >> factor << factor |
+                            frameData[redIdx + 1] >> factor);            // RG
+            datagram.append(frameData[redIdx + 2] >> factor << factor);  // B
+
+            prevBlueIdx = datagram.size() - 1;
+          } else {
+            datagram[prevBlueIdx] =
+                datagram[prevBlueIdx] | frameData[redIdx] >> factor;  // (B)R
+            datagram.append(frameData[redIdx + 1] >> factor << factor |
+                            frameData[redIdx + 2] >> factor);  // GB
+          }
+        } else {                                   // 8 bit not compressed
+          datagram.append(frameData[redIdx]);      // R
+          datagram.append(frameData[redIdx + 1]);  // G
+          datagram.append(frameData[redIdx + 2]);  // B
+        }
+      }
+    }
+
+    if ((windowIdx + 1) % maxWindowPerDatagram == 0 ||
+        ((windowIdx + 1) == windows && windows % maxWindowPerDatagram != 0)) {
+      m_socket.writeDatagram(datagram, m_targetAddress, m_targetPort);
+
+      datagram.truncate(0);
+      datagram.append(1);
+      datagram.append(++packageNumber);
+    }
   }
+}
+
+void MuebTransmitter::sendFrame(QPixmap frame) {
+  sendFrame(frame.toImage().convertToFormat(QImage::Format_RGB888));
+}
+
+void MuebTransmitter::sendPixel(QRgb pixel, bool windowIdx, quint8 pixelIdx,
+                                QHostAddress targetAddress) {
+  if (targetAddress.isNull()) return;
+
+  const char data[] = {
+      windowIdx, static_cast<char>(pixelIdx), static_cast<char>(qRed(pixel)),
+      static_cast<char>(qGreen(pixel)), static_cast<char>(qBlue(pixel))};
+
+  m_socket.writeDatagram(data, sizeof(data), targetAddress,
+                         libmueb::defaults::unicastPort);
 }

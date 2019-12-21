@@ -2,73 +2,98 @@
 
 #include <QNetworkDatagram>
 
-inline static int UpdateFrame(char *in, QImage &f) {
-  if (in[0] != 1) {
+static int updateFrame(const QByteArray &datagram, QImage &frame) {
+  using namespace libmueb::defaults;
+
+  if (datagram[0] != 1) {
     return -1;
   }
-  int PN = in[1] - 1;
-  if (PN > 4) {
+
+  const auto packetNumber = datagram[1] - 1;
+  if (packetNumber > maxPacketNumber) {
     return -1;
   }
 
-  QColor leftTop, rightTop, leftBottom, rigthBottom;
-  for (int wn = PN * 52, i = 0; wn < (PN + 1) * 52; ++wn, ++i) {
-    leftTop.setRed((in[i * 6 + 0 + 2] & 0xf0) << 1);
-    leftTop.setGreen((in[i * 6 + 0 + 2] & 0x0f) << 5);
+  auto frameData = frame.bits();
+  auto redIdx = packetHeaderSize;
 
-    leftTop.setBlue((in[i * 6 + 1 + 2] & 0xf0) << 1);
-    rightTop.setRed((in[i * 6 + 1 + 2] & 0x0f) << 5);
+  for (int windowIdx = packetNumber * maxWindowPerDatagram;
+       windowIdx < (packetNumber + 1) * maxWindowPerDatagram &&
+       windowIdx < windows;
+       ++windowIdx) {
+    auto row = (windowIdx / windowPerRow) * verticalPixelUnit;
+    auto col = (windowIdx % windowPerRow) * horizontalPixelUnit;
 
-    rightTop.setGreen((in[i * 6 + 2 + 2] & 0xf0) << 1);
-    rightTop.setBlue((in[i * 6 + 2 + 2] & 0x0f) << 5);
+    for (int y = 0; y < verticalPixelUnit; ++y) {
+      for (int x = 0; x < horizontalPixelUnit * 3; x += 3) {
+        // Check datagram index
+        // Drop invalid packet
+        if (redIdx >= datagram.size()) return -1;
 
-    leftBottom.setRed((in[i * 6 + 3 + 2] & 0xf0) << 1);
-    leftBottom.setGreen((in[i * 6 + 3 + 2] & 0x0f) << 5);
+        auto frameIdx = (frame.width() * 3) * (row + y) + (col * 3 + x);
 
-    leftBottom.setBlue((in[i * 6 + 4 + 2] & 0xf0) << 1);
-    rigthBottom.setRed((in[i * 6 + 4 + 2] & 0x0f) << 5);
+        if (colorDepth == 3 || colorDepth == 4) {
+          if (x % 2 == 0) {
+            frameData[frameIdx] = datagram[redIdx] & 0xf0;  // R(G)
+            frameData[frameIdx + 1] = (datagram[redIdx] & 0x0f)
+                                      << factor;                    // (R)G
+            frameData[frameIdx + 2] = datagram[redIdx + 1] & 0xf0;  // B(R)
 
-    rigthBottom.setGreen((in[i * 6 + 5 + 2] & 0xf0) << 1);
-    rigthBottom.setBlue((in[i * 6 + 5 + 2] & 0x0f) << 5);
+            redIdx++;
+          } else {
+            frameData[frameIdx] = (datagram[redIdx] & 0x0f) << factor;  // (B)R
+            frameData[frameIdx + 1] = datagram[redIdx + 1] & 0xf0;      // G(B)
+            frameData[frameIdx + 2] = (datagram[redIdx + 1] & 0x0f)
+                                      << factor;  // (G)B
 
-    f.setPixelColor((wn % 16) * 2 + 0, (wn / 16) * 2 + 0, leftTop);
-    f.setPixelColor((wn % 16) * 2 + 1, (wn / 16) * 2 + 0, rightTop);
-    f.setPixelColor((wn % 16) * 2 + 0, (wn / 16) * 2 + 1, leftBottom);
-    f.setPixelColor((wn % 16) * 2 + 1, (wn / 16) * 2 + 1, rigthBottom);
+            redIdx += 2;
+          }
+        } else {
+          frameData[frameIdx] = datagram[redIdx];          // R
+          frameData[frameIdx + 1] = datagram[redIdx + 1];  // G
+          frameData[frameIdx + 2] = datagram[redIdx + 2];  // B
+
+          redIdx += 3;
+        }
+      }
+    }
   }
 
   return 0;
 }
 
-MUEBReceiver::MUEBReceiver(QObject *parent, uint16_t port)
-    : QObject(parent),
-      socket_(this),
-      port_(port),
-      frame_(32, 26, QImage::Format_RGB888) {
-  qInfo() << "UDP Socket will receive packets on port" << port_;
+MuebReceiver::MuebReceiver(QObject *parent)
+    : QObject(parent), m_socket(new QUdpSocket{this}) {
+  m_socket.bind(m_port);
+  m_frame.fill(Qt::black);
 
-  frame_.fill(Qt::black);
+  connect(&m_socket, &QUdpSocket::readyRead, this,
+          &MuebReceiver::readPendingDatagrams);
 
-  socket_.bind(port_);
-
-  connect(&socket_, SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
+  qInfo() << "UDP Socket will receive packets on port" << m_port;
 }
 
-void MUEBReceiver::readPendingDatagrams() {
-  char data[314];
-  while (socket_.hasPendingDatagrams()) {
-    qint64 len = socket_.readDatagram(data, 314);
+void MuebReceiver::readPendingDatagrams() {
+  while (m_socket.hasPendingDatagrams()) {
+    auto size = m_socket.pendingDatagramSize();
 
-    if (len != 314) {
-      qWarning() << "[MUEBReceiver] Ez a csomag rossz meretu FOS!";
-      break;
+    if (size > libmueb::defaults::packetSize) {
+      m_socket.receiveDatagram(0);  // Drop packet
+      qWarning() << "[MuebReceiver] Packet has invalid size!" << size
+                 << "bytes size must be or smaller than"
+                 << libmueb::defaults::packetSize << "bytes";
+      continue;
     }
 
-    if (UpdateFrame(data, frame_) != 0) {
-      qWarning() << "[MUEBReceiver] Ez a csomag invalid FOS!";
-      break;
+    auto datagram = m_socket.receiveDatagram();
+
+    if (updateFrame(datagram.data(), m_frame) != 0) {
+      qWarning()
+          << "[MuebReceiver] Processed packet is invalid! Check the header "
+             "or packet contents(size)";
+      continue;
     }
 
-    emit frameChanged(frame_);
+    emit frameChanged(m_frame);
   }
 }

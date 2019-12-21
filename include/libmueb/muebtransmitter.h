@@ -1,26 +1,29 @@
 #ifndef MUEBTRANSMITTER_H
 #define MUEBTRANSMITTER_H
 
+#include <QHostAddress>
 #include <QImage>
 #include <QObject>
-#include <QString>
+#include <QPixmap>
 #include <QUdpSocket>
 
 #include "libmueb_global.h"
 
-class LIBMUEB_EXPORT MUEBTransmitter : public QObject {
+class LIBMUEB_EXPORT MuebTransmitter : public QObject {
   Q_OBJECT
 
-  QUdpSocket socket_;
-  QHostAddress address_;
-  uint16_t port_;
-
  public:
-  explicit MUEBTransmitter(QObject* parent = nullptr,
-                           QString addr = "10.6.255.255",
-                           uint16_t port = 10000);
- public slots:
+  explicit MuebTransmitter(QObject* parent = nullptr);
+
   void sendFrame(QImage frame);
+  void sendFrame(QPixmap frame);
+  void sendPixel(QRgb pixel, bool windowIdx, quint8 pixelIdx,
+                 QHostAddress targetAddress);
+
+ private:
+  QHostAddress m_targetAddress{libmueb::defaults::broadcastAddress};
+  quint16 m_targetPort = libmueb::defaults::port;
+  QUdpSocket m_socket{this};
 };
 
 #endif  // MUEBTRANSMITTER_H
