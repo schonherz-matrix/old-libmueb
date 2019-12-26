@@ -14,26 +14,26 @@ class QString;
 
 namespace libmueb::defaults {
 
-extern const int rows;
-extern const int roomPerRow;
-extern const int windowPerRoom;
-extern const int windowPerRow;
-extern const int windows;
-extern const int windowByteSize;
-extern const int verticalPixelUnit;
-extern const int horizontalPixelUnit;
-extern const quint8 colorDepth;
-extern const quint8 factor;
-extern const int width;
-extern const int height;
-extern const QImage frame;
-extern const int maxWindowPerDatagram;
-extern const int packetHeaderSize;
-extern const int packetSize;
-extern const int maxPacketNumber;
-extern const QString broadcastAddress;
-extern const quint16 unicastPort;
-extern const quint16 port;
+LIBMUEB_EXPORT extern const int rows;
+LIBMUEB_EXPORT extern const int roomPerRow;
+LIBMUEB_EXPORT extern const int windowPerRoom;
+LIBMUEB_EXPORT extern const int windowPerRow;
+LIBMUEB_EXPORT extern const int windows;
+LIBMUEB_EXPORT extern const int windowByteSize;
+LIBMUEB_EXPORT extern const int verticalPixelUnit;
+LIBMUEB_EXPORT extern const int horizontalPixelUnit;
+LIBMUEB_EXPORT extern const quint8 colorDepth;
+LIBMUEB_EXPORT extern const quint8 factor;
+LIBMUEB_EXPORT extern const int width;
+LIBMUEB_EXPORT extern const int height;
+LIBMUEB_EXPORT extern const QImage frame;
+LIBMUEB_EXPORT extern const int maxWindowPerDatagram;
+LIBMUEB_EXPORT extern const int packetHeaderSize;
+LIBMUEB_EXPORT extern const int packetSize;
+LIBMUEB_EXPORT extern const int maxPacketNumber;
+LIBMUEB_EXPORT extern const QString broadcastAddress;
+LIBMUEB_EXPORT extern const quint16 unicastPort;
+LIBMUEB_EXPORT extern const quint16 port;
 
 }  // namespace libmueb::defaults
 
