@@ -62,8 +62,7 @@ static int updateFrame(const QByteArray &datagram, QImage &frame) {
   return 0;
 }
 
-MuebReceiver::MuebReceiver(QObject *parent)
-    : QObject(parent), m_socket(new QUdpSocket{this}) {
+MuebReceiver::MuebReceiver(QObject *parent) : QObject(parent) {
   m_socket.bind(m_port);
   m_frame.fill(Qt::black);
 
