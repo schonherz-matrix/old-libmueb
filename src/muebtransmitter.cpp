@@ -3,7 +3,8 @@
 #include <QByteArray>
 
 MuebTransmitter::MuebTransmitter(QObject *parent) : QObject(parent) {
-  qInfo() << "UDP Socket will send frame to" << m_targetAddress.toString();
+  qInfo() << "[MuebTransmitter] UDP Socket will send frame to"
+          << m_targetAddress.toString();
 }
 
 void MuebTransmitter::sendFrame(QImage frame) {

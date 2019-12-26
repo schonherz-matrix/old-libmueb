@@ -69,7 +69,7 @@ MuebReceiver::MuebReceiver(QObject *parent) : QObject(parent) {
   connect(&m_socket, &QUdpSocket::readyRead, this,
           &MuebReceiver::readPendingDatagrams);
 
-  qInfo() << "UDP Socket will receive packets on port" << m_port;
+  qInfo() << "[MuebReceiver] UDP Socket will receive packets on port" << m_port;
 }
 
 void MuebReceiver::readPendingDatagrams() {
