@@ -7,6 +7,19 @@ MuebTransmitter::MuebTransmitter(QObject *parent) : QObject(parent) {
           << m_targetAddress.toString();
 }
 
+/* Reference:
+ * http://threadlocalmutex.com/?p=48
+ * http://threadlocalmutex.com/?page_id=60
+ */
+inline static quint8 reduceColor(quint8 c) {
+  if (libmueb::defaults::colorDepth == 3)
+    return (c * 225 + 4096) >> 13;
+  else if (libmueb::defaults::colorDepth == 4)
+    return (c * 15 + 135) >> 8;
+
+  return c;
+}
+
 void MuebTransmitter::sendFrame(QImage frame) {
   using namespace libmueb::defaults;
 
@@ -18,7 +31,6 @@ void MuebTransmitter::sendFrame(QImage frame) {
 
   const auto frameData = frame.bits();
   char packageNumber = 1;
-  auto prevBlueIdx = 0;
 
   QByteArray datagram;
   datagram.reserve(maxWindowPerDatagram * windowByteSize + packetHeaderSize);
@@ -35,20 +47,18 @@ void MuebTransmitter::sendFrame(QImage frame) {
       for (int x = 0; x < horizontalPixelUnit * 3; x += 3) {
         auto redIdx = (width * 3) * (row + y) + (col * 3 + x);
 
-        if (colorDepth == 3 || colorDepth == 4) {  // 3 bit, 4 bit compression
+        if (colorDepth < 5) {  // < 5 bit color compression
           if (x % 2 == 0) {
-            datagram.append(frameData[redIdx] >> factor << factor |
-                            frameData[redIdx + 1] >> factor);            // RG
-            datagram.append(frameData[redIdx + 2] >> factor << factor);  // B
-
-            prevBlueIdx = datagram.size() - 1;
+            datagram.append(reduceColor(frameData[redIdx]) << factor |
+                            reduceColor(frameData[redIdx + 1]));  // RG
+            datagram.append(reduceColor(frameData[redIdx + 2]) << factor);  // B
           } else {
-            datagram[prevBlueIdx] =
-                datagram[prevBlueIdx] | frameData[redIdx] >> factor;  // (B)R
-            datagram.append(frameData[redIdx + 1] >> factor << factor |
-                            frameData[redIdx + 2] >> factor);  // GB
+            datagram.back() =  // Previous Blue color
+                datagram.back() | reduceColor(frameData[redIdx]);  // (B)R
+            datagram.append(reduceColor(frameData[redIdx + 1]) << factor |
+                            reduceColor(frameData[redIdx + 2]));  // GB
           }
-        } else {                                   // 8 bit not compressed
+        } else {                                   // 8 bit color not compressed
           datagram.append(frameData[redIdx]);      // R
           datagram.append(frameData[redIdx + 1]);  // G
           datagram.append(frameData[redIdx + 2]);  // B
