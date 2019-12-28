@@ -2,19 +2,28 @@
 
 #include <QNetworkDatagram>
 
-static int updateFrame(const QByteArray &datagram, QImage &frame) {
+MuebReceiver::MuebReceiver(QObject *parent) : QObject(parent) {
+  m_socket.bind(m_port);
+  m_frame.fill(Qt::black);
+
+  connect(&m_socket, &QUdpSocket::readyRead, this,
+          &MuebReceiver::readPendingDatagrams);
+
+  qInfo() << "[MuebReceiver] UDP Socket will receive packets on port" << m_port;
+}
+
+bool MuebReceiver::updateFrame() {
   using namespace libmueb::defaults;
 
-  if (datagram[0] != 1) {
-    return -1;
-  }
+  const auto datagram{m_socket.receiveDatagram().data()};
+
+  // Packet header check
+  if (datagram[0] != 1) return false;
 
   const auto packetNumber = datagram[1] - 1;
-  if (packetNumber > maxPacketNumber) {
-    return -1;
-  }
+  if (packetNumber > maxPacketNumber) return false;
 
-  auto frameData = frame.bits();
+  auto frameData = m_frame.bits();
   auto redIdx = packetHeaderSize;
 
   for (int windowIdx = packetNumber * maxWindowPerDatagram;
@@ -28,11 +37,11 @@ static int updateFrame(const QByteArray &datagram, QImage &frame) {
       for (int x = 0; x < horizontalPixelUnit * 3; x += 3) {
         // Check datagram index
         // Drop invalid packet
-        if (redIdx >= datagram.size()) return -1;
+        if (redIdx >= datagram.size()) return false;
 
-        auto frameIdx = (frame.width() * 3) * (row + y) + (col * 3 + x);
+        auto frameIdx = (m_frame.width() * 3) * (row + y) + (col * 3 + x);
 
-        if (colorDepth == 3 || colorDepth == 4) {
+        if (colorDepth < 5) {
           if (x % 2 == 0) {
             frameData[frameIdx] = datagram[redIdx] & 0xf0;  // R(G)
             frameData[frameIdx + 1] = (datagram[redIdx] & 0x0f)
@@ -59,17 +68,7 @@ static int updateFrame(const QByteArray &datagram, QImage &frame) {
     }
   }
 
-  return 0;
-}
-
-MuebReceiver::MuebReceiver(QObject *parent) : QObject(parent) {
-  m_socket.bind(m_port);
-  m_frame.fill(Qt::black);
-
-  connect(&m_socket, &QUdpSocket::readyRead, this,
-          &MuebReceiver::readPendingDatagrams);
-
-  qInfo() << "[MuebReceiver] UDP Socket will receive packets on port" << m_port;
+  return true;
 }
 
 void MuebReceiver::readPendingDatagrams() {
@@ -84,9 +83,7 @@ void MuebReceiver::readPendingDatagrams() {
       continue;
     }
 
-    auto datagram = m_socket.receiveDatagram();
-
-    if (updateFrame(datagram.data(), m_frame) != 0) {
+    if (!updateFrame()) {
       qWarning()
           << "[MuebReceiver] Processed packet is invalid! Check the header "
              "or packet contents(size)";
