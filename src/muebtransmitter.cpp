@@ -29,7 +29,7 @@ void MuebTransmitter::sendFrame(QImage frame) {
     return;
   }
 
-  const auto frameData = frame.bits();
+  const auto frameData = frame.constBits();
   char packageNumber = 1;
 
   QByteArray datagram;
