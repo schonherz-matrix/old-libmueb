@@ -30,14 +30,14 @@ void MuebTransmitter::sendFrame(QImage frame) {
   }
 
   const auto frameData = frame.constBits();
-  char packageNumber = 1;
+  qint8 packetNumber = 1;
 
   QByteArray datagram;
   datagram.reserve(maxWindowPerDatagram * windowByteSize + packetHeaderSize);
 
   // Packet header
   datagram.append(1);
-  datagram.append(packageNumber);
+  datagram.append(packetNumber);
 
   for (int windowIdx = 0; windowIdx < windows; ++windowIdx) {
     auto row = (windowIdx / windowPerRow) * verticalPixelUnit;
@@ -72,7 +72,7 @@ void MuebTransmitter::sendFrame(QImage frame) {
 
       datagram.truncate(0);
       datagram.append(1);
-      datagram.append(++packageNumber);
+      datagram.append(++packetNumber);
     }
   }
 }
