@@ -29,6 +29,14 @@ void MuebTransmitter::sendFrame(QImage frame) {
     return;
   }
 
+  if (frame.format() == QImage::Format_Invalid) {
+    qWarning() << "[MuebTransmitter] Frame is invalid";
+    return;
+  }
+
+  if (frame.format() != libmueb::defaults::frame.format())
+    frame = frame.convertToFormat(libmueb::defaults::frame.format());
+
   const auto frameData = frame.constBits();
   qint8 packetNumber = 1;
 
