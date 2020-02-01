@@ -2,6 +2,7 @@
 #define MUEBRECEIVER_H
 
 #include <QImage>
+#include <QNetworkDatagram>
 #include <QObject>
 #include <QUdpSocket>
 
@@ -20,7 +21,7 @@ class LIBMUEB_EXPORT MuebReceiver : public QObject {
   QUdpSocket m_socket{this};
   quint16 m_port{libmueb::defaults::port};
   QImage m_frame{libmueb::defaults::frame};
-  bool updateFrame();
+  bool updateFrame(const QByteArray data);
   void readPendingDatagrams();
 };
 
