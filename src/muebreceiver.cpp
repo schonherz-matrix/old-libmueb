@@ -16,8 +16,8 @@ bool MuebReceiver::updateFrame(const QByteArray data) {
   // Packet header check
   if (data[0] != 1) return false;
 
-  const auto packetNumber = data[1] - 1;
-  if (packetNumber > maxPacketNumber) return false;
+  const auto packetNumber = data[1];
+  if (packetNumber >= maxPacketNumber || packetNumber < 0) return false;
 
   auto frameData = m_frame.bits();
   auto redIdx = packetHeaderSize;

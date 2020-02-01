@@ -38,7 +38,7 @@ void MuebTransmitter::sendFrame(QImage frame) {
     frame = frame.convertToFormat(libmueb::defaults::frame.format());
 
   const auto frameData = frame.constBits();
-  qint8 packetNumber = 1;
+  qint8 packetNumber = 0;
 
   QByteArray datagram;
   datagram.reserve(maxWindowPerDatagram * windowByteSize + packetHeaderSize);
