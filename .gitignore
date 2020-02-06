@@ -15,6 +15,7 @@
 *.la
 *.lai
 *.so
+*.so.*
 *.dll
 *.dylib
 
@@ -37,6 +38,8 @@ ui_*.h
 *.jsc
 Makefile*
 *build-*
+*.qm
+*.prl
 
 # Qt unit tests
 target_wrapper.*
@@ -61,4 +64,4 @@ compile_commands.json
 debug/
 release/
 
-Makefile
+build
