@@ -1,11 +1,29 @@
 #include "muebtransmitter.h"
 
 #include <QByteArray>
+#include <QUdpSocket>
 
-MuebTransmitter::MuebTransmitter(QObject *parent) : QObject(parent) {
-  qInfo() << "[MuebTransmitter] UDP Socket will send frame to"
-          << m_targetAddress.toString();
-}
+class MuebTransmitterPrivate {
+  Q_DECLARE_PUBLIC(MuebTransmitter)
+
+  MuebTransmitter* q_ptr;
+
+ public:
+  explicit MuebTransmitterPrivate(MuebTransmitter* transmitter)
+      : q_ptr(transmitter) {
+    qInfo() << "[MuebTransmitter] UDP Socket will send frame to"
+            << targetAddress.toString();
+  }
+
+  QUdpSocket socket;
+  QHostAddress targetAddress{libmueb::defaults::broadcastAddress};
+  quint16 targetPort = libmueb::defaults::port;
+};
+
+MuebTransmitter::MuebTransmitter(QObject* parent)
+    : QObject(parent), d_ptr(std::make_unique<MuebTransmitterPrivate>(this)) {}
+
+MuebTransmitter::~MuebTransmitter() = default;
 
 /* Reference:
  * http://threadlocalmutex.com/?p=48
@@ -21,6 +39,8 @@ inline static quint8 reduceColor(quint8 c) {
 }
 
 void MuebTransmitter::sendFrame(QImage frame) {
+  Q_D(MuebTransmitter);
+
   using namespace libmueb::defaults;
 
   if (frame.width() != width || frame.height() != height) {
@@ -76,7 +96,7 @@ void MuebTransmitter::sendFrame(QImage frame) {
 
     if ((windowIdx + 1) % maxWindowPerDatagram == 0 ||
         ((windowIdx + 1) == windows && windows % maxWindowPerDatagram != 0)) {
-      m_socket.writeDatagram(datagram, m_targetAddress, m_targetPort);
+      d->socket.writeDatagram(datagram, d->targetAddress, d->targetPort);
 
       datagram.truncate(0);
       datagram.append(1);
@@ -91,12 +111,14 @@ void MuebTransmitter::sendFrame(QPixmap frame) {
 
 void MuebTransmitter::sendPixel(QRgb pixel, bool windowIdx, quint8 pixelIdx,
                                 QHostAddress targetAddress) {
+  Q_D(MuebTransmitter);
+
   if (targetAddress.isNull()) return;
 
   const char data[] = {
       windowIdx, static_cast<char>(pixelIdx), static_cast<char>(qRed(pixel)),
       static_cast<char>(qGreen(pixel)), static_cast<char>(qBlue(pixel))};
 
-  m_socket.writeDatagram(data, sizeof(data), targetAddress,
-                         libmueb::defaults::unicastPort);
+  d->socket.writeDatagram(data, sizeof(data), targetAddress,
+                          libmueb::defaults::unicastPort);
 }

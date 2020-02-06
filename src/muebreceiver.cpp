@@ -1,16 +1,40 @@
 #include "muebreceiver.h"
 
-MuebReceiver::MuebReceiver(QObject *parent) : QObject(parent) {
-  m_socket.bind(m_port);
-  m_frame.fill(Qt::black);
+#include <QNetworkDatagram>
+#include <QUdpSocket>
 
-  connect(&m_socket, &QUdpSocket::readyRead, this,
-          &MuebReceiver::readPendingDatagrams);
+class MuebReceiverPrivate {
+  Q_DISABLE_COPY(MuebReceiverPrivate)
+  Q_DECLARE_PUBLIC(MuebReceiver)
 
-  qInfo() << "[MuebReceiver] UDP Socket will receive packets on port" << m_port;
-}
+  MuebReceiver* q_ptr;
+
+ public:
+  explicit MuebReceiverPrivate(MuebReceiver* receiver) : q_ptr(receiver) {
+    Q_Q(MuebReceiver);
+
+    socket.bind(port);
+    frame.fill(Qt::black);
+
+    QObject::connect(&socket, &QUdpSocket::readyRead, q,
+                     &MuebReceiver::readPendingDatagrams);
+
+    qInfo() << "[MuebReceiver] UDP Socket will receive packets on port" << port;
+  }
+
+  QUdpSocket socket;
+  quint16 port{libmueb::defaults::port};
+  QImage frame{libmueb::defaults::frame};
+};
+
+MuebReceiver::MuebReceiver(QObject* parent)
+    : QObject(parent), d_ptr(std::make_unique<MuebReceiverPrivate>(this)) {}
+
+MuebReceiver::~MuebReceiver() = default;
 
 bool MuebReceiver::updateFrame(const QByteArray data) {
+  Q_D(MuebReceiver);
+
   using namespace libmueb::defaults;
 
   // Packet header check
@@ -19,7 +43,7 @@ bool MuebReceiver::updateFrame(const QByteArray data) {
   const auto packetNumber = data[1];
   if (packetNumber >= maxPacketNumber || packetNumber < 0) return false;
 
-  auto frameData = m_frame.bits();
+  auto frameData = d->frame.bits();
   auto redIdx = packetHeaderSize;
 
   for (int windowIdx = packetNumber * maxWindowPerDatagram;
@@ -35,7 +59,7 @@ bool MuebReceiver::updateFrame(const QByteArray data) {
         // Drop invalid packet
         if (redIdx >= data.size()) return false;
 
-        auto frameIdx = (m_frame.width() * 3) * (row + y) + (col * 3 + x);
+        auto frameIdx = (d->frame.width() * 3) * (row + y) + (col * 3 + x);
 
         if (colorDepth < 5) {
           if (x % 2 == 0) {
@@ -67,8 +91,10 @@ bool MuebReceiver::updateFrame(const QByteArray data) {
 }
 
 void MuebReceiver::readPendingDatagrams() {
-  while (m_socket.hasPendingDatagrams()) {
-    auto datagram = m_socket.receiveDatagram(libmueb::defaults::packetSize);
+  Q_D(MuebReceiver);
+
+  while (d->socket.hasPendingDatagrams()) {
+    auto datagram = d->socket.receiveDatagram(libmueb::defaults::packetSize);
     auto data = datagram.data();
     auto size = data.size();
 
@@ -86,6 +112,6 @@ void MuebReceiver::readPendingDatagrams() {
       continue;
     }
 
-    emit frameChanged(m_frame);
+    emit frameChanged(d->frame);
   }
 }

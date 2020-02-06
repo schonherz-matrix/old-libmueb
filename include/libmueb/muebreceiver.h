@@ -2,25 +2,28 @@
 #define MUEBRECEIVER_H
 
 #include <QImage>
-#include <QNetworkDatagram>
 #include <QObject>
-#include <QUdpSocket>
+#include <memory>
 
 #include "libmueb_global.h"
 
+class MuebReceiverPrivate;
+
 class LIBMUEB_EXPORT MuebReceiver : public QObject {
   Q_OBJECT
+  Q_DECLARE_PRIVATE(MuebReceiver)
+  Q_DISABLE_COPY(MuebReceiver)
 
  public:
   explicit MuebReceiver(QObject* parent = nullptr);
+  ~MuebReceiver();
 
  signals:
   void frameChanged(QImage f);
 
  private:
-  QUdpSocket m_socket{this};
-  quint16 m_port{libmueb::defaults::port};
-  QImage m_frame{libmueb::defaults::frame};
+  std::unique_ptr<MuebReceiverPrivate> const d_ptr;
+
   bool updateFrame(const QByteArray data);
   void readPendingDatagrams();
 };
