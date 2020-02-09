@@ -8,9 +8,11 @@ project(
   LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
 set(CMAKE_AUTOUIC OFF)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC OFF)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -66,6 +68,10 @@ add_library(
 add_library(
   muebreceiver src/muebreceiver.cpp src/libmueb_global.cpp
                include/libmueb/libmueb_global.h include/libmueb/muebreceiver.h)
+
+add_library(libmueb::mueb ALIAS mueb)
+add_library(libmueb::muebtransmitter ALIAS muebtransmitter)
+add_library(libmueb::muebreceiver ALIAS muebreceiver)
 
 target_include_directories(
   mueb
@@ -138,6 +144,11 @@ install(
   EXPORT "${TARGETS_EXPORT_NAME}"
   NAMESPACE "${namespace}"
   DESTINATION "${config_install_dir}")
+
+export(
+  EXPORT ${TARGETS_EXPORT_NAME}
+  FILE "${generated_dir}/${TARGETS_EXPORT_NAME}.cmake"
+  NAMESPACE "${namespace}")
 
 set(CPACK_PACKAGE_VENDOR "PROJECT_HOMEPAGE_URL")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY ${PROJECT_DESCRIPTION})
