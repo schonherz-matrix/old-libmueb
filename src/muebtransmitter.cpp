@@ -1,6 +1,7 @@
 #include "muebtransmitter.h"
 
 #include <QByteArray>
+#include <QHostAddress>
 #include <QUdpSocket>
 
 class MuebTransmitterPrivate {
@@ -110,8 +111,13 @@ void MuebTransmitter::sendFrame(QPixmap frame) {
 }
 
 void MuebTransmitter::sendPixel(QRgb pixel, bool windowIdx, quint8 pixelIdx,
-                                QHostAddress targetAddress) {
+                                QString targetAddress) {
   Q_D(MuebTransmitter);
+  QHostAddress addr(targetAddress);
+  if (addr.isNull()) {
+    qWarning() << "[MuebTransmitter] IP address is invalid";
+    return;
+  }
 
   if (targetAddress.isNull()) return;
 
@@ -119,6 +125,6 @@ void MuebTransmitter::sendPixel(QRgb pixel, bool windowIdx, quint8 pixelIdx,
       windowIdx, static_cast<char>(pixelIdx), static_cast<char>(qRed(pixel)),
       static_cast<char>(qGreen(pixel)), static_cast<char>(qBlue(pixel))};
 
-  d->socket.writeDatagram(data, sizeof(data), targetAddress,
+  d->socket.writeDatagram(data, sizeof(data), addr,
                           libmueb::defaults::unicastPort);
 }

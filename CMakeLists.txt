@@ -88,8 +88,14 @@ target_include_directories(
   PUBLIC $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
          $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}>)
 
-target_link_libraries(mueb PUBLIC Qt5::Core Qt5::Gui Qt5::Network)
-target_link_libraries(muebtransmitter PUBLIC Qt5::Core Qt5::Gui Qt5::Network)
+target_link_libraries(
+  mueb
+  PUBLIC Qt5::Core Qt5::Gui
+  PRIVATE Qt5::Network)
+target_link_libraries(
+  muebtransmitter
+  PUBLIC Qt5::Core Qt5::Gui
+  PRIVATE Qt5::Network)
 target_link_libraries(
   muebreceiver
   PUBLIC Qt5::Core Qt5::Gui

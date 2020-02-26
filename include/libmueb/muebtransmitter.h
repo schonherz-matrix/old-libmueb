@@ -1,7 +1,6 @@
 #ifndef MUEBTRANSMITTER_H
 #define MUEBTRANSMITTER_H
 
-#include <QHostAddress>
 #include <QImage>
 #include <QObject>
 #include <QPixmap>
@@ -10,6 +9,7 @@
 #include "libmueb_global.h"
 
 class MuebTransmitterPrivate;
+class QHostAddress;
 
 class LIBMUEB_EXPORT MuebTransmitter : public QObject {
   Q_OBJECT
@@ -24,7 +24,7 @@ class LIBMUEB_EXPORT MuebTransmitter : public QObject {
   void sendFrame(QImage frame);
   void sendFrame(QPixmap frame);
   void sendPixel(QRgb pixel, bool windowIdx, quint8 pixelIdx,
-                 QHostAddress targetAddress);
+                 QString targetAddress);
 
  private:
   std::unique_ptr<MuebTransmitterPrivate> d_ptr;
