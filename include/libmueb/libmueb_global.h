@@ -38,6 +38,7 @@ LIBMUEB_EXPORT extern const int maxPacketNumber;
 LIBMUEB_EXPORT extern const QString broadcastAddress;
 LIBMUEB_EXPORT extern const quint16 unicastPort;
 LIBMUEB_EXPORT extern const quint16 port;
+LIBMUEB_EXPORT extern const int protocolType;
 
 }  // namespace libmueb::defaults
 

@@ -65,7 +65,7 @@ void MuebTransmitter::sendFrame(QImage frame) {
   datagram.reserve(maxWindowPerDatagram * windowByteSize + packetHeaderSize);
 
   // Packet header
-  datagram.append(1);
+  datagram.append(protocolType);
   datagram.append(packetNumber);
 
   for (int windowIdx = 0; windowIdx < windows; ++windowIdx) {

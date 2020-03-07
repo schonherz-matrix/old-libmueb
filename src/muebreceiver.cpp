@@ -38,7 +38,7 @@ bool MuebReceiver::updateFrame(const QByteArray data) {
   using namespace libmueb::defaults;
 
   // Packet header check
-  if (data[0] != 1) return false;
+  if (data[0] != 1 && data[0] != 2) return false;
 
   const auto packetNumber = data[1];
   if (packetNumber >= maxPacketNumber || packetNumber < 0) return false;

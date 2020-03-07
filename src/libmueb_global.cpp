@@ -22,7 +22,7 @@ extern const quint8 factor = 8 - colorDepth;
 extern const int width = windowPerRow * horizontalPixelUnit;
 extern const int height = rows * verticalPixelUnit;
 extern const QImage frame{width, height, QImage::Format_RGB888};
-extern const int maxWindowPerDatagram = 52;
+extern const int maxWindowPerDatagram = 208;
 extern const int packetHeaderSize = 2;
 extern const int packetSize =
     maxWindowPerDatagram * windowByteSize + packetHeaderSize;
@@ -30,5 +30,6 @@ extern const int maxPacketNumber = qCeil(windows / maxWindowPerDatagram);
 extern const QString broadcastAddress{"10.6.255.255"};
 extern const quint16 unicastPort = 3000;
 extern const quint16 port = 10000;
+extern const int protocolType = 2;
 
 }  // namespace libmueb::defaults
