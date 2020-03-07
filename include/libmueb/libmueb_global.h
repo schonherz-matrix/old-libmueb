@@ -3,10 +3,14 @@
 
 #include <QtCore/qglobal.h>
 
+#ifdef DLL_CONFIG
 #if defined(LIBMUEB_LIBRARY)
 #define LIBMUEB_EXPORT Q_DECL_EXPORT
 #else
 #define LIBMUEB_EXPORT Q_DECL_IMPORT
+#endif
+#else
+#define LIBMUEB_EXPORT
 #endif
 
 class QImage;

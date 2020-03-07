@@ -26,28 +26,8 @@ find_package(
   REQUIRED)
 
 add_compile_definitions(LIBMUEB_LIBRARY)
-
-if(MSVC)
-  set(pdb_output_dir "${CMAKE_CURRENT_BINARY_DIR}/pdb-files")
-
-  set(CMAKE_PDB_OUTPUT_DIRECTORY "${pdb_output_dir}")
-  set(CMAKE_COMPILE_PDB_OUTPUT_DIRECTORY "${pdb_output_dir}")
-
-  get_cmake_property(is_multi GENERATOR_IS_MULTI_CONFIG)
-  if(is_multi)
-    set(config_suffix "$<CONFIG>")
-  else()
-    set(config_suffix "")
-  endif()
-
-  if(BUILD_SHARED_LIBS)
-    set(pdb_dst ${CMAKE_INSTALL_BINDIR})
-  else()
-    set(pdb_dst ${CMAKE_INSTALL_LIBDIR})
-  endif()
-
-  install(DIRECTORY "${pdb_output_dir}/${config_suffix}/"
-          DESTINATION ${pdb_dst})
+if(BUILD_SHARED_LIBS)
+  add_compile_definitions(DLL_CONFIG)
 endif()
 
 add_library(
