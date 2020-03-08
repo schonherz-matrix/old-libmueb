@@ -30,6 +30,6 @@ extern const int maxPacketNumber = qCeil(windows / maxWindowPerDatagram);
 extern const QString broadcastAddress{"10.6.255.255"};
 extern const quint16 unicastPort = 3000;
 extern const quint16 port = 10000;
-extern const int protocolType = 2;
+extern const int protocolType = (maxWindowPerDatagram == windows) ? 2 : 1;
 
 }  // namespace libmueb::defaults
