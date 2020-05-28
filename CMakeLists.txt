@@ -27,7 +27,7 @@ find_package(
 
 add_compile_definitions(LIBMUEB_LIBRARY)
 if(BUILD_SHARED_LIBS)
-  add_compile_definitions(DLL_CONFIG)
+  add_compile_definitions(LIBMUEB_AS_DLL)
 endif()
 
 add_library(

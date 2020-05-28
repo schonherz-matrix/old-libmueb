@@ -3,7 +3,7 @@
 
 #include <QtCore/qglobal.h>
 
-#ifdef DLL_CONFIG
+#ifdef LIBMUEB_AS_DLL
 #if defined(LIBMUEB_LIBRARY)
 #define LIBMUEB_EXPORT Q_DECL_EXPORT
 #else
