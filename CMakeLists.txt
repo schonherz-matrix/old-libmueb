@@ -82,9 +82,8 @@ target_link_libraries(
   PRIVATE Qt5::Network)
 
 set(config_install_dir "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
-set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
-set(version_config "${generated_dir}/${PROJECT_NAME}ConfigVersion.cmake")
-set(project_config "${generated_dir}/${PROJECT_NAME}Config.cmake")
+set(version_config "${PROJECT_NAME}ConfigVersion.cmake")
+set(project_config "${PROJECT_NAME}Config.cmake")
 set(TARGETS_EXPORT_NAME "${PROJECT_NAME}Targets")
 set(namespace "${PROJECT_NAME}::")
 
@@ -133,7 +132,7 @@ install(
 
 export(
   EXPORT ${TARGETS_EXPORT_NAME}
-  FILE "${generated_dir}/${TARGETS_EXPORT_NAME}.cmake"
+  FILE "${TARGETS_EXPORT_NAME}.cmake"
   NAMESPACE "${namespace}")
 
 set(CPACK_PACKAGE_VENDOR "PROJECT_HOMEPAGE_URL")
