@@ -21,8 +21,13 @@ class MuebTransmitterPrivate {
   quint16 targetPort = libmueb::defaults::port;
 };
 
-MuebTransmitter::MuebTransmitter(QObject* parent)
-    : QObject(parent), d_ptr(std::make_unique<MuebTransmitterPrivate>(this)) {}
+MuebTransmitter& MuebTransmitter::getInstance() {
+  static MuebTransmitter instance;
+  return instance;
+}
+
+MuebTransmitter::MuebTransmitter()
+    : d_ptr(std::make_unique<MuebTransmitterPrivate>(this)) {}
 
 MuebTransmitter::~MuebTransmitter() = default;
 

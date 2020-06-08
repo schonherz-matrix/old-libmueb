@@ -9,14 +9,13 @@
 
 class MuebReceiverPrivate;
 
-class LIBMUEB_EXPORT MuebReceiver : public QObject {
+class LIBMUEB_EXPORT MuebReceiver final : public QObject {
   Q_OBJECT
   Q_DECLARE_PRIVATE(MuebReceiver)
   Q_DISABLE_COPY(MuebReceiver)
 
  public:
-  explicit MuebReceiver(QObject* parent = nullptr);
-  ~MuebReceiver();
+  static MuebReceiver& getInstance();
 
  signals:
   void frameChanged(QImage f);
@@ -24,6 +23,8 @@ class LIBMUEB_EXPORT MuebReceiver : public QObject {
  private:
   std::unique_ptr<MuebReceiverPrivate> const d_ptr;
 
+  MuebReceiver();
+  ~MuebReceiver();
   bool updateFrame(const QByteArray data);
   void readPendingDatagrams();
 };

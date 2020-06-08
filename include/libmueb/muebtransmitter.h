@@ -11,14 +11,13 @@
 class MuebTransmitterPrivate;
 class QHostAddress;
 
-class LIBMUEB_EXPORT MuebTransmitter : public QObject {
+class LIBMUEB_EXPORT MuebTransmitter final : public QObject {
   Q_OBJECT
   Q_DECLARE_PRIVATE(MuebTransmitter)
   Q_DISABLE_COPY(MuebTransmitter)
 
  public:
-  explicit MuebTransmitter(QObject* parent = nullptr);
-  ~MuebTransmitter();
+  static MuebTransmitter& getInstance();
 
  public slots:
   void sendFrame(QImage frame);
@@ -28,6 +27,9 @@ class LIBMUEB_EXPORT MuebTransmitter : public QObject {
 
  private:
   std::unique_ptr<MuebTransmitterPrivate> d_ptr;
+
+  MuebTransmitter();
+  ~MuebTransmitter();
 };
 
 #endif  // MUEBTRANSMITTER_H

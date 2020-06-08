@@ -27,8 +27,13 @@ class MuebReceiverPrivate {
   QImage frame{libmueb::defaults::frame};
 };
 
-MuebReceiver::MuebReceiver(QObject* parent)
-    : QObject(parent), d_ptr(std::make_unique<MuebReceiverPrivate>(this)) {}
+MuebReceiver& MuebReceiver::getInstance() {
+  static MuebReceiver instance;
+  return instance;
+}
+
+MuebReceiver::MuebReceiver()
+    : d_ptr(std::make_unique<MuebReceiverPrivate>(this)) {}
 
 MuebReceiver::~MuebReceiver() = default;
 
