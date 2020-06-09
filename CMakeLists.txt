@@ -34,20 +34,20 @@ add_library(
   mueb
   src/muebtransmitter.cpp
   src/muebreceiver.cpp
-  src/libmueb_global.cpp
   include/libmueb/mueb.h
   include/libmueb/libmueb_global.h
   include/libmueb/muebtransmitter.h
-  include/libmueb/muebreceiver.h)
+  include/libmueb/muebreceiver.h
+  include/libmueb/libmuebconfig.h)
 
 add_library(
   muebtransmitter
-  src/muebtransmitter.cpp src/libmueb_global.cpp
-  include/libmueb/libmueb_global.h include/libmueb/muebtransmitter.h)
+  src/muebtransmitter.cpp include/libmueb/libmueb_global.h
+  include/libmueb/muebtransmitter.h include/libmueb/libmuebconfig.h)
 
 add_library(
-  muebreceiver src/muebreceiver.cpp src/libmueb_global.cpp
-               include/libmueb/libmueb_global.h include/libmueb/muebreceiver.h)
+  muebreceiver src/muebreceiver.cpp include/libmueb/libmueb_global.h
+               include/libmueb/muebreceiver.h include/libmueb/libmuebconfig.h)
 
 add_library(libmueb::mueb ALIAS mueb)
 add_library(libmueb::muebtransmitter ALIAS muebtransmitter)
