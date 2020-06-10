@@ -37,56 +37,76 @@ MuebReceiver::MuebReceiver()
 
 MuebReceiver::~MuebReceiver() = default;
 
+static void uncompressColor(const QByteArray& data, quint8* const& frameData,
+                            const quint32& frameIdx, quint32& dataIdx,
+                            const quint32& x) {
+  using namespace libmueb::defaults;
+
+  if (colorDepth < 5) {
+    if (x % 2 == 0) {
+      frameData[frameIdx] = data[dataIdx] & 0xf0;                  // R(G)
+      frameData[frameIdx + 1] = (data[dataIdx] & 0x0f) << factor;  // (R)G
+      frameData[frameIdx + 2] = data[dataIdx + 1] & 0xf0;          // B(R)
+
+      dataIdx++;
+    } else {
+      frameData[frameIdx] = (data[dataIdx] & 0x0f) << factor;          // (B)R
+      frameData[frameIdx + 1] = data[dataIdx + 1] & 0xf0;              // G(B)
+      frameData[frameIdx + 2] = (data[dataIdx + 1] & 0x0f) << factor;  // (G)B
+
+      dataIdx += 2;
+    }
+  } else {
+    frameData[frameIdx] = data[dataIdx];          // R
+    frameData[frameIdx + 1] = data[dataIdx + 1];  // G
+    frameData[frameIdx + 2] = data[dataIdx + 2];  // B
+
+    dataIdx += 3;
+  }
+}
+
 bool MuebReceiver::updateFrame(const QByteArray data) {
   Q_D(MuebReceiver);
 
   using namespace libmueb::defaults;
 
   // Packet header check
-  if (data[0] != 1 && data[0] != 2) return false;
+  auto protocol = data[0];
+  if (protocol != 1 && protocol != 2) return false;
 
   const quint32 packetNumber = data[1];
   if (packetNumber >= maxPacketNumber || packetNumber < 0) return false;
 
-  auto frameData = d->frame.bits();
-  auto redIdx = packetHeaderSize;
+  const auto frameData = d->frame.bits();
+  auto dataIdx = packetHeaderSize;
 
-  for (quint32 windowIdx = packetNumber * maxWindowPerDatagram;
-       windowIdx < (packetNumber + 1) * maxWindowPerDatagram &&
-       windowIdx < windows;
-       ++windowIdx) {
-    auto row = (windowIdx / windowPerRow) * verticalPixelUnit;
-    auto col = (windowIdx % windowPerRow) * horizontalPixelUnit;
+  if (protocol == 2) {
+    for (quint32 pixelIdx = packetNumber * maxPixelPerDatagram;
+         pixelIdx < (packetNumber + 1) * maxPixelPerDatagram; ++pixelIdx) {
+      // Check datagram index
+      // Drop invalid packet
+      if (dataIdx >= data.size()) return false;
 
-    for (quint32 y = 0; y < verticalPixelUnit; ++y) {
-      for (quint32 x = 0; x < horizontalPixelUnit * 3; x += 3) {
-        // Check datagram index
-        // Drop invalid packet
-        if (redIdx >= data.size()) return false;
+      auto frameIdx = pixelIdx * 3;
+      uncompressColor(data, frameData, frameIdx, dataIdx, pixelIdx);
+    }
+  } else if (protocol == 1) {
+    for (quint32 windowIdx = packetNumber * maxWindowPerDatagram;
+         windowIdx < (packetNumber + 1) * maxWindowPerDatagram &&
+         windowIdx < windows;
+         ++windowIdx) {
+      auto row = (windowIdx / windowPerRow) * verticalPixelUnit;
+      auto col = (windowIdx % windowPerRow) * horizontalPixelUnit;
 
-        auto frameIdx = (d->frame.width() * 3) * (row + y) + (col * 3 + x);
+      for (quint32 y = 0; y < verticalPixelUnit; ++y) {
+        for (quint32 x = 0; x < horizontalPixelUnit * 3; x += 3) {
+          // Check datagram index
+          // Drop invalid packet
+          if (dataIdx >= data.size()) return false;
 
-        if (colorDepth < 5) {
-          if (x % 2 == 0) {
-            frameData[frameIdx] = data[redIdx] & 0xf0;                  // R(G)
-            frameData[frameIdx + 1] = (data[redIdx] & 0x0f) << factor;  // (R)G
-            frameData[frameIdx + 2] = data[redIdx + 1] & 0xf0;          // B(R)
+          auto frameIdx = (d->frame.width() * 3) * (row + y) + (col * 3 + x);
 
-            redIdx++;
-          } else {
-            frameData[frameIdx] = (data[redIdx] & 0x0f) << factor;  // (B)R
-            frameData[frameIdx + 1] = data[redIdx + 1] & 0xf0;      // G(B)
-            frameData[frameIdx + 2] = (data[redIdx + 1] & 0x0f)
-                                      << factor;  // (G)B
-
-            redIdx += 2;
-          }
-        } else {
-          frameData[frameIdx] = data[redIdx];          // R
-          frameData[frameIdx + 1] = data[redIdx + 1];  // G
-          frameData[frameIdx + 2] = data[redIdx + 2];  // B
-
-          redIdx += 3;
+          uncompressColor(data, frameData, frameIdx, dataIdx, x);
         }
       }
     }

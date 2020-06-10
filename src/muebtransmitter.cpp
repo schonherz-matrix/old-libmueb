@@ -44,6 +44,28 @@ inline static quint8 reduceColor(quint8 c) {
   return c;
 }
 
+static void compressColor(QByteArray& datagram, const quint8* const& frameData,
+                          quint32 redIdx, quint32 x) {
+  using namespace libmueb::defaults;
+
+  if (colorDepth < 5) {  // < 5 bit color compression
+    if (x % 2 == 0) {
+      datagram.append(reduceColor(frameData[redIdx]) << factor |
+                      reduceColor(frameData[redIdx + 1]));            // RG
+      datagram.append(reduceColor(frameData[redIdx + 2]) << factor);  // B
+    } else {
+      datagram.back() =  // Previous Blue color
+          datagram.back() | reduceColor(frameData[redIdx]);  // (B)R
+      datagram.append(reduceColor(frameData[redIdx + 1]) << factor |
+                      reduceColor(frameData[redIdx + 2]));  // GB
+    }
+  } else {                                   // 8 bit color not compressed
+    datagram.append(frameData[redIdx]);      // R
+    datagram.append(frameData[redIdx + 1]);  // G
+    datagram.append(frameData[redIdx + 2]);  // B
+  }
+}
+
 void MuebTransmitter::sendFrame(QImage frame) {
   Q_D(MuebTransmitter);
 
@@ -73,40 +95,39 @@ void MuebTransmitter::sendFrame(QImage frame) {
   datagram.append(protocolType);
   datagram.append(packetNumber);
 
-  for (quint32 windowIdx = 0; windowIdx < windows; ++windowIdx) {
-    auto row = (windowIdx / windowPerRow) * verticalPixelUnit;
-    auto col = (windowIdx % windowPerRow) * horizontalPixelUnit;
+  if (mode == libmueb::Mode::ROW_WISE) {
+    for (quint32 pixelIdx = 0; pixelIdx < pixels; ++pixelIdx) {
+      compressColor(datagram, frameData, pixelIdx * 3, pixelIdx);
 
-    for (quint32 y = 0; y < verticalPixelUnit; ++y) {
-      for (quint32 x = 0; x < horizontalPixelUnit * 3; x += 3) {
-        auto redIdx = (width * 3) * (row + y) + (col * 3 + x);
+      if ((pixelIdx + 1) % maxPixelPerDatagram == 0) {
+        d->socket.writeDatagram(datagram, d->targetAddress, d->targetPort);
 
-        if (colorDepth < 5) {  // < 5 bit color compression
-          if (x % 2 == 0) {
-            datagram.append(reduceColor(frameData[redIdx]) << factor |
-                            reduceColor(frameData[redIdx + 1]));  // RG
-            datagram.append(reduceColor(frameData[redIdx + 2]) << factor);  // B
-          } else {
-            datagram.back() =  // Previous Blue color
-                datagram.back() | reduceColor(frameData[redIdx]);  // (B)R
-            datagram.append(reduceColor(frameData[redIdx + 1]) << factor |
-                            reduceColor(frameData[redIdx + 2]));  // GB
-          }
-        } else {                                   // 8 bit color not compressed
-          datagram.append(frameData[redIdx]);      // R
-          datagram.append(frameData[redIdx + 1]);  // G
-          datagram.append(frameData[redIdx + 2]);  // B
-        }
+        datagram.truncate(0);
+        datagram.append(protocolType);
+        datagram.append(++packetNumber);
       }
     }
+  } else if (mode == libmueb::Mode::WINDOW_WISE) {
+    for (quint32 windowIdx = 0; windowIdx < windows; ++windowIdx) {
+      auto row = (windowIdx / windowPerRow) * verticalPixelUnit;
+      auto col = (windowIdx % windowPerRow) * horizontalPixelUnit;
 
-    if ((windowIdx + 1) % maxWindowPerDatagram == 0 ||
-        ((windowIdx + 1) == windows && windows % maxWindowPerDatagram != 0)) {
-      d->socket.writeDatagram(datagram, d->targetAddress, d->targetPort);
+      for (quint32 y = 0; y < verticalPixelUnit; ++y) {
+        for (quint32 x = 0; x < horizontalPixelUnit * 3; x += 3) {
+          auto redIdx = (width * 3) * (row + y) + (col * 3 + x);
 
-      datagram.truncate(0);
+          compressColor(datagram, frameData, redIdx, x);
+        }
+      }
+
+      if ((windowIdx + 1) % maxWindowPerDatagram == 0 ||
+          ((windowIdx + 1) == windows && windows % maxWindowPerDatagram != 0)) {
+        d->socket.writeDatagram(datagram, d->targetAddress, d->targetPort);
+
+        datagram.truncate(0);
         datagram.append(protocolType);
-      datagram.append(++packetNumber);
+        datagram.append(++packetNumber);
+      }
     }
   }
 }
