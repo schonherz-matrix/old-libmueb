@@ -73,12 +73,12 @@ void MuebTransmitter::sendFrame(QImage frame) {
   datagram.append(protocolType);
   datagram.append(packetNumber);
 
-  for (int windowIdx = 0; windowIdx < windows; ++windowIdx) {
+  for (quint32 windowIdx = 0; windowIdx < windows; ++windowIdx) {
     auto row = (windowIdx / windowPerRow) * verticalPixelUnit;
     auto col = (windowIdx % windowPerRow) * horizontalPixelUnit;
 
-    for (int y = 0; y < verticalPixelUnit; ++y) {
-      for (int x = 0; x < horizontalPixelUnit * 3; x += 3) {
+    for (quint32 y = 0; y < verticalPixelUnit; ++y) {
+      for (quint32 x = 0; x < horizontalPixelUnit * 3; x += 3) {
         auto redIdx = (width * 3) * (row + y) + (col * 3 + x);
 
         if (colorDepth < 5) {  // < 5 bit color compression

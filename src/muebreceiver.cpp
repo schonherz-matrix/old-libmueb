@@ -45,21 +45,21 @@ bool MuebReceiver::updateFrame(const QByteArray data) {
   // Packet header check
   if (data[0] != 1 && data[0] != 2) return false;
 
-  const auto packetNumber = data[1];
+  const quint32 packetNumber = data[1];
   if (packetNumber >= maxPacketNumber || packetNumber < 0) return false;
 
   auto frameData = d->frame.bits();
   auto redIdx = packetHeaderSize;
 
-  for (int windowIdx = packetNumber * maxWindowPerDatagram;
+  for (quint32 windowIdx = packetNumber * maxWindowPerDatagram;
        windowIdx < (packetNumber + 1) * maxWindowPerDatagram &&
        windowIdx < windows;
        ++windowIdx) {
     auto row = (windowIdx / windowPerRow) * verticalPixelUnit;
     auto col = (windowIdx % windowPerRow) * horizontalPixelUnit;
 
-    for (int y = 0; y < verticalPixelUnit; ++y) {
-      for (int x = 0; x < horizontalPixelUnit * 3; x += 3) {
+    for (quint32 y = 0; y < verticalPixelUnit; ++y) {
+      for (quint32 x = 0; x < horizontalPixelUnit * 3; x += 3) {
         // Check datagram index
         // Drop invalid packet
         if (redIdx >= data.size()) return false;
