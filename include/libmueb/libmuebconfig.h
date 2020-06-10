@@ -7,14 +7,17 @@
 
 namespace libmueb::defaults {
 
+// Hardware specific constants
 inline constexpr quint32 rows = 13;
 inline constexpr quint32 roomPerRow = 8;
 inline constexpr quint32 windowPerRoom = 2;
-inline constexpr quint32 windowPerRow = roomPerRow * windowPerRoom;
-inline constexpr quint32 windows = rows * windowPerRow;
 inline constexpr quint32 verticalPixelUnit = 2;
 inline constexpr quint32 horizontalPixelUnit = 2;
 inline constexpr quint8 colorDepth = 3;
+
+// Calculated, software specific constants
+inline constexpr quint32 windowPerRow = roomPerRow * windowPerRoom;
+inline constexpr quint32 windows = rows * windowPerRow;
 inline constexpr quint32 windowByteSize =
     (colorDepth == 3 || colorDepth == 4)
         ? horizontalPixelUnit * verticalPixelUnit * 3 / 2
@@ -34,6 +37,21 @@ inline constexpr quint16 unicastPort = 3000;
 inline constexpr quint16 port = 10000;
 inline const QString broadcastAddress{"10.6.255.255"};
 inline constexpr quint8 factor = 8 - colorDepth;
+
+// Configuration check
+static_assert(rows > 0);
+static_assert(roomPerRow > 0);
+static_assert(windowPerRoom > 0);
+static_assert(verticalPixelUnit > 0);
+static_assert(horizontalPixelUnit > 0);
+static_assert(colorDepth >= 3 && colorDepth <= 8,
+              "Color depth must be between 3 and 8");
+static_assert(maxWindowPerDatagram > 0 && maxWindowPerDatagram <= windows);
+static_assert(packetHeaderSize > 0);
+static_assert(packetSize > 0 && packetSize <= 1472,
+              "Packet size must be less than 1472 bytes to avoid IPv4"
+              "fragmentation. Assuming 1500 MTU, 1500-20(IPv4 header)-8(UDP "
+              "header) = 1472 bytes");
 
 }  // namespace libmueb::defaults
 
