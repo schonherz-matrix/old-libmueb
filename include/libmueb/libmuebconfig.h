@@ -26,7 +26,7 @@ inline constexpr quint32 packetHeaderSize = 2;
 inline constexpr quint32 packetSize =
     maxWindowPerDatagram * windowByteSize + packetHeaderSize;
 inline const quint32 maxPacketNumber =
-    std::ceil(windows / maxWindowPerDatagram);
+    std::ceil(static_cast<qreal>(windows) / maxWindowPerDatagram);
 inline const QImage frame{width, height, QImage::Format_RGB888};
 inline constexpr quint32 protocolType =
     (maxWindowPerDatagram == windows) ? 2 : 1;
