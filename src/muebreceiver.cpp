@@ -98,15 +98,16 @@ bool MuebReceiver::updateFrame(const QByteArray data) {
 void MuebReceiver::readPendingDatagrams() {
   Q_D(MuebReceiver);
 
+  using namespace libmueb::defaults;
+
   while (d->socket.hasPendingDatagrams()) {
-    auto datagram = d->socket.receiveDatagram(libmueb::defaults::packetSize);
+    auto datagram = d->socket.receiveDatagram(packetSize);
     auto data = datagram.data();
     auto size = data.size();
 
-    if (size != libmueb::defaults::packetSize) {
+    if (size != packetSize && size != remainderPacketSize) {
       qWarning() << "[MuebReceiver] Packet has invalid size!" << size
-                 << "bytes size must be or smaller than"
-                 << libmueb::defaults::packetSize << "bytes";
+                 << "bytes";
       continue;
     }
 

@@ -28,6 +28,14 @@ inline constexpr quint32 maxWindowPerDatagram = 208;
 inline constexpr quint32 packetHeaderSize = 2;
 inline constexpr quint32 packetSize =
     maxWindowPerDatagram * windowByteSize + packetHeaderSize;
+constexpr quint32 getRemainderPacketSize() {
+  quint32 size =
+      (windows - maxWindowPerDatagram * (windows / maxWindowPerDatagram)) *
+      windowByteSize;
+
+  return (size) ? size + packetHeaderSize : 0;
+}
+inline constexpr quint32 remainderPacketSize = getRemainderPacketSize();
 inline const quint32 maxPacketNumber =
     std::ceil(static_cast<qreal>(windows) / maxWindowPerDatagram);
 inline const QImage frame{width, height, QImage::Format_RGB888};
