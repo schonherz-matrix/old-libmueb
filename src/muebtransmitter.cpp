@@ -105,7 +105,7 @@ void MuebTransmitter::sendFrame(QImage frame) {
       d->socket.writeDatagram(datagram, d->targetAddress, d->targetPort);
 
       datagram.truncate(0);
-      datagram.append(1);
+        datagram.append(protocolType);
       datagram.append(++packetNumber);
     }
   }
