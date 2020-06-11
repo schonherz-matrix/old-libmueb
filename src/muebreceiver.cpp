@@ -1,6 +1,7 @@
 #include "muebreceiver.h"
 
 #include <QNetworkDatagram>
+#include <QThread>
 #include <QUdpSocket>
 
 class MuebReceiverPrivate {
@@ -14,17 +15,24 @@ class MuebReceiverPrivate {
     Q_Q(MuebReceiver);
 
     socket.bind(port);
-    frame.fill(Qt::black);
 
     QObject::connect(&socket, &QUdpSocket::readyRead, q,
                      &MuebReceiver::readPendingDatagrams);
+    QObject::connect(&processor, &DatagramProcessor::frameReady, receiver,
+                     &MuebReceiver::frameChanged);
 
     qInfo() << "[MuebReceiver] UDP Socket will receive packets on port" << port;
   }
 
+  ~MuebReceiverPrivate() {
+    thread.quit();
+    thread.wait();
+  }
+
   QUdpSocket socket;
   quint16 port{libmueb::defaults::port};
-  QImage frame{libmueb::defaults::frame};
+  DatagramProcessor processor;
+  QThread thread;
 };
 
 MuebReceiver& MuebReceiver::getInstance() {
@@ -65,19 +73,30 @@ static void uncompressColor(const QByteArray& data, quint8* const& frameData,
   }
 }
 
-bool MuebReceiver::updateFrame(const QByteArray data) {
-  Q_D(MuebReceiver);
+DatagramProcessor::DatagramProcessor() { m_frame.fill(Qt::black); }
 
+static inline void datagramUncompressError() {
+  qWarning() << "[MuebReceiver] Processed packet is invalid! Check the header "
+                "or packet contents(size)";
+}
+
+void DatagramProcessor::processDatagram(const QByteArray datagram) {
   using namespace libmueb::defaults;
 
   // Packet header check
-  auto protocol = data[0];
-  if (protocol != 1 && protocol != 2) return false;
+  auto protocol = datagram[0];
+  if (protocol != 1 && protocol != 2) {
+    datagramUncompressError();
+    return;
+  }
 
-  const quint32 packetNumber = data[1];
-  if (packetNumber >= maxPacketNumber || packetNumber < 0) return false;
+  const quint32 packetNumber = datagram[1];
+  if (packetNumber >= maxPacketNumber || packetNumber < 0) {
+    datagramUncompressError();
+    return;
+  }
 
-  const auto frameData = d->frame.bits();
+  const auto frameData = m_frame.bits();
   auto dataIdx = packetHeaderSize;
 
   if (protocol == 2) {
@@ -85,10 +104,13 @@ bool MuebReceiver::updateFrame(const QByteArray data) {
          pixelIdx < (packetNumber + 1) * maxPixelPerDatagram; ++pixelIdx) {
       // Check datagram index
       // Drop invalid packet
-      if (dataIdx >= data.size()) return false;
+      if (dataIdx >= datagram.size()) {
+        datagramUncompressError();
+        return;
+      }
 
       auto frameIdx = pixelIdx * 3;
-      uncompressColor(data, frameData, frameIdx, dataIdx, pixelIdx);
+      uncompressColor(datagram, frameData, frameIdx, dataIdx, pixelIdx);
     }
   } else if (protocol == 1) {
     for (quint32 windowIdx = packetNumber * maxWindowPerDatagram;
@@ -102,17 +124,20 @@ bool MuebReceiver::updateFrame(const QByteArray data) {
         for (quint32 x = 0; x < horizontalPixelUnit * 3; x += 3) {
           // Check datagram index
           // Drop invalid packet
-          if (dataIdx >= data.size()) return false;
+          if (dataIdx >= datagram.size()) {
+            datagramUncompressError();
+            return;
+          }
 
-          auto frameIdx = (d->frame.width() * 3) * (row + y) + (col * 3 + x);
+          auto frameIdx = (m_frame.width() * 3) * (row + y) + (col * 3 + x);
 
-          uncompressColor(data, frameData, frameIdx, dataIdx, x);
+          uncompressColor(datagram, frameData, frameIdx, dataIdx, x);
         }
       }
     }
   }
 
-  return true;
+  emit frameReady(m_frame);
 }
 
 void MuebReceiver::readPendingDatagrams() {
@@ -131,13 +156,8 @@ void MuebReceiver::readPendingDatagrams() {
       continue;
     }
 
-    if (!updateFrame(data)) {
-      qWarning()
-          << "[MuebReceiver] Processed packet is invalid! Check the header "
-             "or packet contents(size)";
-      continue;
-    }
-
-    emit frameChanged(d->frame);
+    QMetaObject::invokeMethod(&d->processor, "processDatagram",
+                              Qt::QueuedConnection,
+                              Q_ARG(const QByteArray, data));
   }
 }

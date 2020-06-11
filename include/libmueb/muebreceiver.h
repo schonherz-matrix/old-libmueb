@@ -9,6 +9,22 @@
 
 class MuebReceiverPrivate;
 
+class DatagramProcessor : public QObject {
+  Q_OBJECT
+
+ public:
+  DatagramProcessor();
+
+ public slots:
+  void processDatagram(const QByteArray datagram);
+
+ signals:
+  void frameReady(QImage frame);
+
+ private:
+  QImage m_frame{libmueb::defaults::frame};
+};
+
 class LIBMUEB_EXPORT MuebReceiver final : public QObject {
   Q_OBJECT
   Q_DECLARE_PRIVATE(MuebReceiver)
@@ -25,7 +41,6 @@ class LIBMUEB_EXPORT MuebReceiver final : public QObject {
 
   MuebReceiver();
   ~MuebReceiver();
-  bool updateFrame(const QByteArray data);
   void readPendingDatagrams();
 };
 
