@@ -11,6 +11,16 @@
 class MuebTransmitterPrivate;
 class QHostAddress;
 
+class FrameCompressor : public QObject {
+  Q_OBJECT
+
+ public slots:
+  void compressFrame(QImage frame);
+
+ signals:
+  void datagramReady(QByteArray datagram);
+};
+
 class LIBMUEB_EXPORT MuebTransmitter final : public QObject {
   Q_OBJECT
   Q_DECLARE_PRIVATE(MuebTransmitter)
@@ -24,6 +34,9 @@ class LIBMUEB_EXPORT MuebTransmitter final : public QObject {
   void sendFrame(QPixmap frame);
   void sendPixel(QRgb pixel, bool windowIdx, quint8 pixelIdx,
                  QString targetAddress);
+
+ private slots:
+  void datagramCompressed(QByteArray datagram);
 
  private:
   std::unique_ptr<MuebTransmitterPrivate> d_ptr;

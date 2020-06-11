@@ -2,6 +2,7 @@
 
 #include <QByteArray>
 #include <QHostAddress>
+#include <QThread>
 #include <QUdpSocket>
 
 class MuebTransmitterPrivate {
@@ -14,11 +15,24 @@ class MuebTransmitterPrivate {
       : q_ptr(transmitter) {
     qInfo() << "[MuebTransmitter] UDP Socket will send frame to"
             << targetAddress.toString();
+
+    QObject::connect(&compressor, &FrameCompressor::datagramReady, transmitter,
+                     &MuebTransmitter::datagramCompressed);
+
+    compressor.moveToThread(&compressorThread);
+    compressorThread.start();
+  }
+
+  ~MuebTransmitterPrivate() {
+    compressorThread.quit();
+    compressorThread.wait();
   }
 
   QUdpSocket socket;
   QHostAddress targetAddress{libmueb::defaults::broadcastAddress};
   quint16 targetPort = libmueb::defaults::port;
+  FrameCompressor compressor;
+  QThread compressorThread;
 };
 
 MuebTransmitter& MuebTransmitter::getInstance() {
@@ -66,24 +80,8 @@ static void compressColor(QByteArray& datagram, const quint8* const& frameData,
   }
 }
 
-void MuebTransmitter::sendFrame(QImage frame) {
-  Q_D(MuebTransmitter);
-
+void FrameCompressor::compressFrame(QImage frame) {
   using namespace libmueb::defaults;
-
-  if (frame.width() != width || frame.height() != height) {
-    qWarning() << "[MuebTransmitter] Frame has invalid size" << frame.size()
-               << "must be" << libmueb::defaults::frame.size();
-    return;
-  }
-
-  if (frame.format() == QImage::Format_Invalid) {
-    qWarning() << "[MuebTransmitter] Frame is invalid";
-    return;
-  }
-
-  if (frame.format() != libmueb::defaults::frame.format())
-    frame = frame.convertToFormat(libmueb::defaults::frame.format());
 
   const auto frameData = frame.constBits();
   qint8 packetNumber = 0;
@@ -100,7 +98,7 @@ void MuebTransmitter::sendFrame(QImage frame) {
       compressColor(datagram, frameData, pixelIdx * 3, pixelIdx);
 
       if ((pixelIdx + 1) % maxPixelPerDatagram == 0) {
-        d->socket.writeDatagram(datagram, d->targetAddress, d->targetPort);
+        emit datagramReady(datagram);
 
         datagram.truncate(0);
         datagram.append(protocolType);
@@ -122,7 +120,7 @@ void MuebTransmitter::sendFrame(QImage frame) {
 
       if ((windowIdx + 1) % maxWindowPerDatagram == 0 ||
           ((windowIdx + 1) == windows && windows % maxWindowPerDatagram != 0)) {
-        d->socket.writeDatagram(datagram, d->targetAddress, d->targetPort);
+        emit datagramReady(datagram);
 
         datagram.truncate(0);
         datagram.append(protocolType);
@@ -130,6 +128,29 @@ void MuebTransmitter::sendFrame(QImage frame) {
       }
     }
   }
+}
+
+void MuebTransmitter::sendFrame(QImage frame) {
+  Q_D(MuebTransmitter);
+
+  using namespace libmueb::defaults;
+
+  if (frame.width() != width || frame.height() != height) {
+    qWarning() << "[MuebTransmitter] Frame has invalid size" << frame.size()
+               << "must be" << libmueb::defaults::frame.size();
+    return;
+  }
+
+  if (frame.format() == QImage::Format_Invalid) {
+    qWarning() << "[MuebTransmitter] Frame is invalid";
+    return;
+  }
+
+  if (frame.format() != libmueb::defaults::frame.format())
+    frame = frame.convertToFormat(libmueb::defaults::frame.format());
+
+  QMetaObject::invokeMethod(&d->compressor, "compressFrame",
+                            Qt::QueuedConnection, Q_ARG(QImage, frame));
 }
 
 void MuebTransmitter::sendFrame(QPixmap frame) {
@@ -153,4 +174,12 @@ void MuebTransmitter::sendPixel(QRgb pixel, bool windowIdx, quint8 pixelIdx,
 
   d->socket.writeDatagram(data, sizeof(data), addr,
                           libmueb::defaults::unicastPort);
+}
+
+void MuebTransmitter::datagramCompressed(QByteArray datagram) {
+  using namespace libmueb::defaults;
+
+  Q_D(MuebTransmitter);
+
+  d->socket.writeDatagram(datagram, d->targetAddress, d->targetPort);
 }
