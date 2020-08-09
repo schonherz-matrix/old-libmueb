@@ -34,11 +34,14 @@ add_library(
   mueb
   src/muebtransmitter.cpp
   src/muebreceiver.cpp
+  src/muebcontroller.cpp
   include/libmueb/mueb.h
   include/libmueb/libmueb_global.h
   include/libmueb/muebtransmitter.h
   include/libmueb/muebreceiver.h
-  include/libmueb/libmuebconfig.h)
+  include/libmueb/libmuebconfig.h
+  include/libmueb/muebcontroller.h
+  )
 
 add_library(
   muebtransmitter
