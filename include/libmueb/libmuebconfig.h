@@ -51,6 +51,9 @@ inline const QImage frame{width, height, QImage::Format_RGB888};
 inline constexpr quint32 protocolType = (mode == Mode::ROW_WISE) ? 2 : 1;
 inline constexpr quint16 unicastPort = 3000;
 inline constexpr quint16 port = 10000;
+inline constexpr quint16 commandPort{2000};
+inline constexpr quint16 firmwarePort{1997};
+inline const QString commandMagic{"SEM"};
 inline const QString broadcastAddress{"10.6.255.255"};
 inline constexpr quint8 factor = 8 - colorDepth;
 
