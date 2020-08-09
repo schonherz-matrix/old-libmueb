@@ -2,6 +2,7 @@
 
 #include <QDebug>
 #include <QNetworkDatagram>
+#include <QTcpSocket>
 #include <QUdpSocket>
 
 class MuebControllerPrivate {
@@ -22,6 +23,7 @@ class MuebControllerPrivate {
   }
 
   QUdpSocket udpSocket;
+  QTcpSocket tcpSocket;
 };
 
 MuebController& MuebController::getInstance() {
@@ -45,6 +47,24 @@ void MuebController::sendCommand(MuebController::Commands command,
   }
 
   d->udpSocket.writeDatagram(packet, target, commandPort);
+}
+
+bool MuebController::sendFirmware(QFile firmware, QHostAddress target) {
+  using namespace libmueb::defaults;
+  Q_D(MuebController);
+
+  d->tcpSocket.connectToHost(target, firmwarePort, QTcpSocket::WriteOnly);
+
+  if (!d->tcpSocket.waitForConnected()) {
+    qWarning() << "[MuebController]: Unable to connect to" << target.toString();
+    return false;
+  };
+
+  if (!firmware.open(QFile::ReadOnly)) return false;
+
+  d->tcpSocket.write(firmware.readAll());
+
+  return d->tcpSocket.waitForBytesWritten();
 }
 
 MuebController::MuebController()
