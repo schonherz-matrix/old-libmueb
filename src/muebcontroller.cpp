@@ -1,6 +1,7 @@
 #include "muebcontroller.h"
 
 #include <QDebug>
+#include <QHostAddress>
 #include <QNetworkDatagram>
 #include <QTcpSocket>
 #include <QUdpSocket>
@@ -32,31 +33,34 @@ MuebController& MuebController::getInstance() {
 }
 
 void MuebController::sendCommand(MuebController::Commands command,
-                                 QHostAddress target, bool broadcastCommand,
+                                 QString target, bool broadcastCommand,
                                  QByteArray macAddress) {
   using namespace libmueb::defaults;
   Q_D(MuebController);
+
+  QHostAddress targetAddress{target};
 
   QByteArray packet;
   packet.append(commandMagic).append(command);
 
   if (broadcastCommand) {
-    target = QHostAddress(broadcastAddress);
+    targetAddress = QHostAddress(broadcastAddress);
     packet.append(1);
     packet.append(macAddress);
   }
 
-  d->udpSocket.writeDatagram(packet, target, commandPort);
+  d->udpSocket.writeDatagram(packet, targetAddress, commandPort);
 }
 
-bool MuebController::sendFirmware(QFile firmware, QHostAddress target) {
+bool MuebController::sendFirmware(QFile firmware, QString target) {
   using namespace libmueb::defaults;
   Q_D(MuebController);
 
   d->tcpSocket.connectToHost(target, firmwarePort, QTcpSocket::WriteOnly);
 
   if (!d->tcpSocket.waitForConnected()) {
-    qWarning() << "[MuebController]: Unable to connect to" << target.toString();
+    qWarning() << "[MuebController]: Unable to connect to"
+               << targetAddress.toString();
     return false;
   };
 

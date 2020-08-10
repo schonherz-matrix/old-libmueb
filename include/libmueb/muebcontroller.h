@@ -2,7 +2,6 @@
 #define MUEBCONTROLLER_H
 
 #include <QFile>
-#include <QHostAddress>
 #include <QObject>
 #include <memory>
 
@@ -37,10 +36,10 @@ class LIBMUEB_EXPORT MuebController final : public QObject {
 
   static MuebController& getInstance();
 
-  void sendCommand(Commands command, QHostAddress target, bool broadcastCommand,
+  void sendCommand(Commands command, QString target, bool broadcastCommand,
                    QByteArray macAddress = "");
 
-  void sendFirmware(QFile firmware);
+  bool sendFirmware(QFile firmware, QString target);
 
  signals:
   void commandResponse(QString val);
