@@ -30,6 +30,8 @@ class MuebControllerPrivate {
   QUdpSocket udpSocket;
   QTcpSocket tcpSocket;
   QByteArray whiteBalanceData;
+  bool broadcastCommandMode;
+  QByteArray macAddress;
 };
 
 MuebController& MuebController::getInstance() {
@@ -38,8 +40,7 @@ MuebController& MuebController::getInstance() {
 }
 
 bool MuebController::sendCommand(MuebController::Commands command,
-                                 QString target, bool broadcastCommand,
-                                 QByteArray macAddress) {
+                                 QString target) {
   using namespace libmueb::defaults;
   Q_D(MuebController);
 
@@ -49,10 +50,10 @@ bool MuebController::sendCommand(MuebController::Commands command,
   packet.reserve(32);
   packet.append(commandMagic).append(command);
 
-  if (broadcastCommand) {
+  if (d->broadcastCommandMode) {
     targetAddress = QHostAddress(broadcastAddress);
     packet.append(1);
-    packet.append(macAddress);
+    packet.append(d->macAddress);
   } else if (targetAddress.isNull()) {
     return false;
   }
@@ -62,6 +63,8 @@ bool MuebController::sendCommand(MuebController::Commands command,
   }
 
   d->udpSocket.writeDatagram(packet, targetAddress, commandPort);
+
+  return true;
 }
 
 bool MuebController::sendFirmware(QFile firmware, QString target) {
@@ -103,6 +106,23 @@ bool MuebController::setWhiteBalanceData(const QByteArray value) {
   Q_D(MuebController);
   d->whiteBalanceData.reserve(21);
   d->whiteBalanceData = value;
+
+  return true;
+}
+
+bool MuebController::broadcastCommandMode() const {
+  return d_ptr->broadcastCommandMode;
+}
+
+bool MuebController::setBroadcastCommandMode(bool on,
+                                             const QByteArray macAddress) {
+  Q_D(MuebController);
+
+  if (macAddress.size() != 6) return false;
+  d->macAddress.reserve(6);
+  d->broadcastCommandMode = on;
+
+  return true;
 }
 
 MuebController::MuebController()
