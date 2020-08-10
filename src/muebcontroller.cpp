@@ -37,9 +37,8 @@ MuebController& MuebController::getInstance() {
 }
 
 void MuebController::sendCommand(MuebController::Commands command,
-                                 QString target, bool broadcastCommand,
-                                 QByteArray whiteBalance,
-                                 QByteArray macAddress) {
+                                 QString target, QByteArray whiteBalance,
+                                 bool broadcastCommand, QByteArray macAddress) {
   using namespace libmueb::defaults;
   Q_D(MuebController);
 
