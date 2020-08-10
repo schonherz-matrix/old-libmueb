@@ -38,10 +38,12 @@ class LIBMUEB_EXPORT MuebController final : public QObject {
   static MuebController& getInstance();
 
   bool sendCommand(Commands command, QString target,
-                   QByteArray whiteBalance = "", bool broadcastCommand = false,
-                   QByteArray macAddress = "");
+                   bool broadcastCommand = false, QByteArray macAddress = "");
 
   bool sendFirmware(QFile firmware, QString target);
+
+  QByteArray whiteBalanceData() const;
+  bool setWhiteBalanceData(const QByteArray value);
 
  signals:
   void commandResponse(QString val);
