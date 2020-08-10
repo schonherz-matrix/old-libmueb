@@ -36,7 +36,7 @@ MuebController& MuebController::getInstance() {
   return controller;
 }
 
-void MuebController::sendCommand(MuebController::Commands command,
+bool MuebController::sendCommand(MuebController::Commands command,
                                  QString target, QByteArray whiteBalance,
                                  bool broadcastCommand, QByteArray macAddress) {
   using namespace libmueb::defaults;
@@ -52,6 +52,8 @@ void MuebController::sendCommand(MuebController::Commands command,
     targetAddress = QHostAddress(broadcastAddress);
     packet.append(1);
     packet.append(macAddress);
+  } else if (targetAddress.isNull()) {
+    return false;
   }
 
   if (command == Commands::set_whitebalance) {
