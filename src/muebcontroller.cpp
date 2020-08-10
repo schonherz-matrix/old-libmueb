@@ -30,8 +30,8 @@ class MuebControllerPrivate {
   QUdpSocket udpSocket;
   QTcpSocket tcpSocket;
   QByteArray whiteBalanceData;
-  bool broadcastCommandMode;
   QByteArray macAddress;
+  bool broadcastCommandMode{false};
 };
 
 MuebController& MuebController::getInstance() {
