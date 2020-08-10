@@ -38,6 +38,7 @@ MuebController& MuebController::getInstance() {
 
 void MuebController::sendCommand(MuebController::Commands command,
                                  QString target, bool broadcastCommand,
+                                 QByteArray whiteBalance,
                                  QByteArray macAddress) {
   using namespace libmueb::defaults;
   Q_D(MuebController);
@@ -51,6 +52,10 @@ void MuebController::sendCommand(MuebController::Commands command,
     targetAddress = QHostAddress(broadcastAddress);
     packet.append(1);
     packet.append(macAddress);
+  }
+
+  if (command == Commands::set_whitebalance) {
+    packet.insert(11, whiteBalance);
   }
 
   d->udpSocket.writeDatagram(packet, targetAddress, commandPort);

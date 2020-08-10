@@ -1,6 +1,7 @@
 #ifndef MUEBCONTROLLER_H
 #define MUEBCONTROLLER_H
 
+#include <QByteArray>
 #include <QFile>
 #include <QObject>
 #include <memory>
@@ -37,7 +38,7 @@ class LIBMUEB_EXPORT MuebController final : public QObject {
   static MuebController& getInstance();
 
   void sendCommand(Commands command, QString target, bool broadcastCommand,
-                   QByteArray macAddress = "");
+                   QByteArray whiteBalance = "", QByteArray macAddress = "");
 
   bool sendFirmware(QFile firmware, QString target);
 
