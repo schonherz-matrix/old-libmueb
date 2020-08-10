@@ -49,7 +49,11 @@ class LIBMUEB_EXPORT MuebController final : public QObject {
 
   MuebController();
   ~MuebController();
+
   void readPendingDatagrams();
+#ifdef Q_OS_WINDOWS
+  void closeTcpSocket();
+#endif
 };
 
 #endif  // MUEBCONTROLLER_H

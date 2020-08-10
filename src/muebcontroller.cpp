@@ -21,7 +21,11 @@ class MuebControllerPrivate {
 
     QObject::connect(&udpSocket, &QUdpSocket::readyRead, q,
                      &MuebController::readPendingDatagrams);
+#ifdef Q_OS_WINDOWS
+    QObject::connect(&tcpSocket, &QTcpSocket::bytesWritten, q,
+                     &MuebController::closeTcpSocket);
   }
+#endif
 
   QUdpSocket udpSocket;
   QTcpSocket tcpSocket;
@@ -59,8 +63,7 @@ bool MuebController::sendFirmware(QFile firmware, QString target) {
   d->tcpSocket.connectToHost(target, firmwarePort, QTcpSocket::WriteOnly);
 
   if (!d->tcpSocket.waitForConnected()) {
-    qWarning() << "[MuebController]: Unable to connect to"
-               << targetAddress.toString();
+    qWarning() << "[MuebController]:" << d->tcpSocket.error();
     return false;
   };
 
@@ -68,7 +71,18 @@ bool MuebController::sendFirmware(QFile firmware, QString target) {
 
   d->tcpSocket.write(firmware.readAll());
 
-  return d->tcpSocket.waitForBytesWritten();
+  // https://doc.qt.io/qt-5/qabstractsocket.html#waitForBytesWritten Note
+#ifndef Q_OS_WINDOWS
+  if (!d->tcpSocket.waitForBytesWritten()) return false;
+
+  d->tcpSocket.disconnectFromHost();
+  if (!d->tcpSocket.waitForDisconnected()) {
+    qWarning() << "[MuebController]:" << d->tcpSocket.error();
+    return false;
+  }
+#endif
+
+  return true;
 }
 
 MuebController::MuebController()
@@ -83,3 +97,14 @@ void MuebController::readPendingDatagrams() {
     emit commandResponse(d->udpSocket.receiveDatagram().data());
   }
 }
+
+#ifdef Q_OS_WINDOWS
+void MuebController::closeTcpSocket() {
+  Q_D(MuebController);
+
+  d->tcpSocket.disconnectFromHost();
+  if (!d->tcpSocket.waitForDisconnected()) {
+    qWarning() << "[MuebController]:" << d->tcpSocket.error();
+  }
+}
+#endif
