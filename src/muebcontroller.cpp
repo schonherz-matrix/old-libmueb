@@ -46,6 +46,7 @@ void MuebController::sendCommand(MuebController::Commands command,
   QHostAddress targetAddress{target};
 
   QByteArray packet;
+  packet.reserve(32);
   packet.append(commandMagic).append(command);
 
   if (broadcastCommand) {
