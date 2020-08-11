@@ -74,22 +74,23 @@ void MuebTransmitter::sendFrame(QPixmap frame) {
   sendFrame(frame.toImage().convertToFormat(QImage::Format_RGB888));
 }
 
-void MuebTransmitter::sendPixel(QRgb pixel, bool windowIdx,
-                                std::uint8_t pixelIdx, QString targetAddress) {
+void MuebTransmitter::sendPixel(const QColor color, Window window,
+                                const std::uint8_t pixelIdx,
+                                const QString target) {
   Q_D(MuebTransmitter);
-  QHostAddress addr(targetAddress);
-  if (addr.isNull()) {
-    qWarning() << "[MuebTransmitter] IP address is invalid";
+
+  QHostAddress targetAddress(target);
+  if (targetAddress.isNull()) {
+    qWarning() << "[MuebTransmitter] Invalid IP address";
     return;
   }
 
-  if (targetAddress.isNull()) return;
+  const char data[] = {static_cast<char>(window), static_cast<char>(pixelIdx),
+                       static_cast<char>(color.red()),
+                       static_cast<char>(color.green()),
+                       static_cast<char>(color.blue())};
 
-  const char data[] = {
-      windowIdx, static_cast<char>(pixelIdx), static_cast<char>(qRed(pixel)),
-      static_cast<char>(qGreen(pixel)), static_cast<char>(qBlue(pixel))};
-
-  d->socket.writeDatagram(data, sizeof(data), addr,
+  d->socket.writeDatagram(data, sizeof(data), targetAddress,
                           libmueb::defaults::unicastPort);
 }
 

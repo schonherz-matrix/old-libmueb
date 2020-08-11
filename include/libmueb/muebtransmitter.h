@@ -17,13 +17,15 @@ class LIBMUEB_EXPORT MuebTransmitter final : public QObject {
   Q_DISABLE_COPY(MuebTransmitter)
 
  public:
+  enum class Window { LEFT, RIGHT };
+
   static MuebTransmitter& getInstance();
 
  public slots:
   void sendFrame(QImage frame);
   void sendFrame(QPixmap frame);
-  void sendPixel(QRgb pixel, bool windowIdx, std::uint8_t pixelIdx,
-                 QString targetAddress);
+  void sendPixel(const QColor color, Window window, const std::uint8_t pixelIdx,
+                 const QString target);
 
  private slots:
   void datagramCompressed(QByteArray datagram);
