@@ -1,8 +1,5 @@
-#ifndef MUEB_H
-#define MUEB_H
+#pragma once
 
-#include "libmueb_global.h"
+#include "muebcontroller.h"
 #include "muebreceiver.h"
 #include "muebtransmitter.h"
-
-#endif  // MUEB_H
