@@ -54,9 +54,9 @@ void MuebReceiver::readPendingDatagrams() {
   using namespace libmueb::defaults;
 
   while (d->socket.hasPendingDatagrams()) {
-    auto datagram = d->socket.receiveDatagram(packetSize);
-    auto data = datagram.data();
-    auto size = data.size();
+    auto datagram{d->socket.receiveDatagram(packetSize)};
+    auto data{datagram.data()};
+    auto size{data.size()};
 
     if (size != packetSize && size != remainderPacketSize) {
       qWarning() << "[MuebReceiver] Packet has invalid size!" << size

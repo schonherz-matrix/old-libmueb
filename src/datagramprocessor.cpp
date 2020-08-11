@@ -2,10 +2,10 @@
 
 #include <QDebug>
 
-static void uncompressColor(const QByteArray& data,
-                            std::uint8_t* const& frameData,
-                            const std::uint32_t& frameIdx,
-                            std::uint32_t& dataIdx, const std::uint32_t& x) {
+namespace {
+void uncompressColor(const QByteArray& data, std::uint8_t* const& frameData,
+                     const std::uint32_t& frameIdx, std::uint32_t& dataIdx,
+                     const std::uint32_t& x) {
   using namespace libmueb::defaults;
 
   if (colorDepth < 5) {
@@ -31,10 +31,11 @@ static void uncompressColor(const QByteArray& data,
   }
 }
 
-static inline void datagramUncompressError() {
+inline void datagramUncompressError() {
   qWarning() << "[MuebReceiver] Processed packet is invalid! Check the header "
                 "or packet contents(size)";
 }
+}  // namespace
 
 DatagramProcessor::DatagramProcessor() { m_frame.fill(Qt::black); }
 

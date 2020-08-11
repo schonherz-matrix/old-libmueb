@@ -6,7 +6,8 @@
  * http://threadlocalmutex.com/?p=48
  * http://threadlocalmutex.com/?page_id=60
  */
-inline static std::uint8_t reduceColor(std::uint8_t c) {
+namespace {
+inline std::uint8_t reduceColor(std::uint8_t c) {
   if (libmueb::defaults::colorDepth == 3)
     return (c * 225 + 4096) >> 13;
   else if (libmueb::defaults::colorDepth == 4)
@@ -15,9 +16,8 @@ inline static std::uint8_t reduceColor(std::uint8_t c) {
   return c;
 }
 
-static void compressColor(QByteArray& datagram,
-                          const std::uint8_t* const& frameData,
-                          std::uint32_t redIdx, std::uint32_t x) {
+void compressColor(QByteArray& datagram, const std::uint8_t* const& frameData,
+                   std::uint32_t redIdx, std::uint32_t x) {
   using namespace libmueb::defaults;
 
   if (colorDepth < 5) {  // < 5 bit color compression
@@ -37,6 +37,7 @@ static void compressColor(QByteArray& datagram,
     datagram.append(frameData[redIdx + 2]);  // B
   }
 }
+}  // namespace
 
 void FrameCompressor::compressFrame(QImage frame) {
   using namespace libmueb::defaults;

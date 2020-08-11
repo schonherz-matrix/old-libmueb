@@ -32,7 +32,7 @@ class MuebTransmitterPrivate {
 
   QUdpSocket socket;
   QHostAddress targetAddress{libmueb::defaults::broadcastAddress};
-  std::uint16_t targetPort = libmueb::defaults::port;
+  std::uint16_t targetPort{libmueb::defaults::port};
   FrameCompressor compressor;
   QThread compressorThread;
 };

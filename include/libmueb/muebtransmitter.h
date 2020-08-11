@@ -10,7 +10,6 @@
 #include "libmueb_global.h"
 
 class MuebTransmitterPrivate;
-class QHostAddress;
 
 class LIBMUEB_EXPORT MuebTransmitter final : public QObject {
   Q_OBJECT

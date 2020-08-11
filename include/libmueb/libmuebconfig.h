@@ -13,50 +13,50 @@ enum class Mode { WINDOW_WISE, ROW_WISE };
 namespace defaults {
 
 // Hardware specific constants
-inline constexpr std::uint32_t rows = 13;
-inline constexpr std::uint32_t roomPerRow = 8;
-inline constexpr std::uint32_t windowPerRoom = 2;
-inline constexpr std::uint32_t verticalPixelUnit = 2;
-inline constexpr std::uint32_t horizontalPixelUnit = 2;
-inline constexpr std::uint8_t colorDepth = 3;
+inline constexpr std::uint32_t rows{13};
+inline constexpr std::uint32_t roomPerRow{8};
+inline constexpr std::uint32_t windowPerRoom{2};
+inline constexpr std::uint32_t verticalPixelUnit{2};
+inline constexpr std::uint32_t horizontalPixelUnit{2};
+inline constexpr std::uint8_t colorDepth{3};
 
 // Calculated, software specific constants
-inline constexpr std::uint32_t pixelPerWindow =
-    verticalPixelUnit * horizontalPixelUnit;
-inline constexpr std::uint32_t windowPerRow = roomPerRow * windowPerRoom;
-inline constexpr std::uint32_t windows = rows * windowPerRow;
-inline constexpr std::uint32_t pixels = windows * pixelPerWindow;
+inline constexpr std::uint32_t pixelPerWindow{verticalPixelUnit *
+                                              horizontalPixelUnit};
+inline constexpr std::uint32_t windowPerRow{roomPerRow * windowPerRoom};
+inline constexpr std::uint32_t windows{rows * windowPerRow};
+inline constexpr std::uint32_t pixels{windows * pixelPerWindow};
 inline constexpr std::uint32_t windowByteSize =
     (colorDepth == 3 || colorDepth == 4) ? pixelPerWindow * 3 / 2
                                          : pixelPerWindow * 3;
-inline constexpr std::uint32_t width = windowPerRow * horizontalPixelUnit;
-inline constexpr std::uint32_t height = rows * verticalPixelUnit;
-inline constexpr Mode mode = Mode::ROW_WISE;
-inline constexpr std::uint32_t maxWindowPerDatagram = 208;
-inline constexpr std::uint32_t maxPixelPerDatagram =
-    maxWindowPerDatagram * pixelPerWindow;
-inline constexpr std::uint32_t packetHeaderSize = 2;
-inline constexpr std::uint32_t packetSize =
-    maxWindowPerDatagram * windowByteSize + packetHeaderSize;
+inline constexpr std::uint32_t width{windowPerRow * horizontalPixelUnit};
+inline constexpr std::uint32_t height{rows * verticalPixelUnit};
+inline constexpr Mode mode{Mode::ROW_WISE};
+inline constexpr std::uint32_t maxWindowPerDatagram{208};
+inline constexpr std::uint32_t maxPixelPerDatagram{maxWindowPerDatagram *
+                                                   pixelPerWindow};
+inline constexpr std::uint32_t packetHeaderSize{2};
+inline constexpr std::uint32_t packetSize{
+    maxWindowPerDatagram * windowByteSize + packetHeaderSize};
 constexpr std::uint32_t getRemainderPacketSize() {
-  std::uint32_t size =
+  std::uint32_t size{
       (windows - maxWindowPerDatagram * (windows / maxWindowPerDatagram)) *
-      windowByteSize;
+      windowByteSize};
 
   return (size) ? size + packetHeaderSize : 0;
 }
-inline constexpr std::uint32_t remainderPacketSize = getRemainderPacketSize();
-inline const std::uint32_t maxPacketNumber =
-    std::ceil(static_cast<qreal>(windows) / maxWindowPerDatagram);
+inline constexpr std::uint32_t remainderPacketSize{getRemainderPacketSize()};
+inline const std::uint32_t maxPacketNumber{static_cast<std::uint32_t>(
+    std::ceil(static_cast<float>(windows) / maxWindowPerDatagram))};
 inline const QImage frame{width, height, QImage::Format_RGB888};
-inline constexpr std::uint32_t protocolType = (mode == Mode::ROW_WISE) ? 2 : 1;
-inline constexpr std::uint16_t unicastPort = 3000;
-inline constexpr std::uint16_t port = 10000;
+inline constexpr std::uint32_t protocolType{(mode == Mode::ROW_WISE) ? 2 : 1};
+inline constexpr std::uint16_t unicastPort{3000};
+inline constexpr std::uint16_t port{10000};
 inline constexpr std::uint16_t commandPort{2000};
 inline constexpr std::uint16_t firmwarePort{1997};
-inline const QString commandMagic{"SEM"};
-inline const QString broadcastAddress{"10.6.255.255"};
-inline constexpr std::uint8_t factor = 8 - colorDepth;
+inline constexpr const char* const commandMagic{"SEM"};
+inline constexpr const char* const broadcastAddress{"10.6.255.255"};
+inline constexpr std::uint8_t factor{8 - colorDepth};
 
 // Configuration check
 static_assert(rows > 0);
