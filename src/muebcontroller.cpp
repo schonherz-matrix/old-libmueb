@@ -55,6 +55,7 @@ bool MuebController::sendCommand(MuebController::Commands command,
     packet.append(1);
     packet.append(d->macAddress);
   } else if (targetAddress.isNull()) {
+    qWarning() << "[MuebController] Invalid IP address";
     return false;
   }
 
@@ -71,7 +72,14 @@ bool MuebController::sendFirmware(QFile firmware, QString target) {
   using namespace libmueb::defaults;
   Q_D(MuebController);
 
-  d->tcpSocket.connectToHost(target, firmwarePort, QTcpSocket::WriteOnly);
+  QHostAddress targetAddress{target};
+  if (targetAddress.isNull()) {
+    qWarning() << "[MuebController] Invalid IP address";
+    return false;
+  }
+
+  d->tcpSocket.connectToHost(targetAddress, firmwarePort,
+                             QTcpSocket::WriteOnly);
 
   if (!d->tcpSocket.waitForConnected()) {
     qWarning() << "[MuebController]:" << d->tcpSocket.error();
