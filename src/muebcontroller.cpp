@@ -126,8 +126,11 @@ bool MuebController::setBroadcastCommandMode(bool on,
                                              const QByteArray macAddress) {
   Q_D(MuebController);
 
-  if (macAddress.size() != 6) return false;
-  d->macAddress.reserve(6);
+  if (on) {
+    if (macAddress.size() != 6) return false;
+    d->macAddress.reserve(6);
+  }
+
   d->broadcastCommandMode = on;
 
   return true;
