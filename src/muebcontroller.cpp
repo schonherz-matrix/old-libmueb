@@ -82,7 +82,7 @@ bool MuebController::sendFirmware(QFile firmware, QString target) {
                              QTcpSocket::WriteOnly);
 
   if (!d->tcpSocket.waitForConnected()) {
-    qWarning() << "[MuebController]:" << d->tcpSocket.error();
+    qWarning() << "[MuebController]" << d->tcpSocket.error();
     return false;
   };
 
@@ -155,7 +155,7 @@ void MuebController::closeTcpSocket() {
 
   d->tcpSocket.disconnectFromHost();
   if (!d->tcpSocket.waitForDisconnected()) {
-    qWarning() << "[MuebController]:" << d->tcpSocket.error();
+    qWarning() << "[MuebController]" << d->tcpSocket.error();
   }
 }
 #endif
