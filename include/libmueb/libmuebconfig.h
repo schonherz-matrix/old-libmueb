@@ -4,6 +4,7 @@
 #include <QImage>
 #include <QString>
 #include <cmath>
+#include <cstdint>
 
 namespace libmueb {
 
@@ -12,50 +13,50 @@ enum class Mode { WINDOW_WISE, ROW_WISE };
 namespace defaults {
 
 // Hardware specific constants
-inline constexpr quint32 rows = 13;
-inline constexpr quint32 roomPerRow = 8;
-inline constexpr quint32 windowPerRoom = 2;
-inline constexpr quint32 verticalPixelUnit = 2;
-inline constexpr quint32 horizontalPixelUnit = 2;
-inline constexpr quint8 colorDepth = 3;
+inline constexpr std::uint32_t rows = 13;
+inline constexpr std::uint32_t roomPerRow = 8;
+inline constexpr std::uint32_t windowPerRoom = 2;
+inline constexpr std::uint32_t verticalPixelUnit = 2;
+inline constexpr std::uint32_t horizontalPixelUnit = 2;
+inline constexpr std::uint8_t colorDepth = 3;
 
 // Calculated, software specific constants
-inline constexpr quint32 pixelPerWindow =
+inline constexpr std::uint32_t pixelPerWindow =
     verticalPixelUnit * horizontalPixelUnit;
-inline constexpr quint32 windowPerRow = roomPerRow * windowPerRoom;
-inline constexpr quint32 windows = rows * windowPerRow;
-inline constexpr quint32 pixels = windows * pixelPerWindow;
-inline constexpr quint32 windowByteSize = (colorDepth == 3 || colorDepth == 4)
-                                              ? pixelPerWindow * 3 / 2
-                                              : pixelPerWindow * 3;
-inline constexpr quint32 width = windowPerRow * horizontalPixelUnit;
-inline constexpr quint32 height = rows * verticalPixelUnit;
+inline constexpr std::uint32_t windowPerRow = roomPerRow * windowPerRoom;
+inline constexpr std::uint32_t windows = rows * windowPerRow;
+inline constexpr std::uint32_t pixels = windows * pixelPerWindow;
+inline constexpr std::uint32_t windowByteSize =
+    (colorDepth == 3 || colorDepth == 4) ? pixelPerWindow * 3 / 2
+                                         : pixelPerWindow * 3;
+inline constexpr std::uint32_t width = windowPerRow * horizontalPixelUnit;
+inline constexpr std::uint32_t height = rows * verticalPixelUnit;
 inline constexpr Mode mode = Mode::ROW_WISE;
-inline constexpr quint32 maxWindowPerDatagram = 208;
-inline constexpr quint32 maxPixelPerDatagram =
+inline constexpr std::uint32_t maxWindowPerDatagram = 208;
+inline constexpr std::uint32_t maxPixelPerDatagram =
     maxWindowPerDatagram * pixelPerWindow;
-inline constexpr quint32 packetHeaderSize = 2;
-inline constexpr quint32 packetSize =
+inline constexpr std::uint32_t packetHeaderSize = 2;
+inline constexpr std::uint32_t packetSize =
     maxWindowPerDatagram * windowByteSize + packetHeaderSize;
-constexpr quint32 getRemainderPacketSize() {
-  quint32 size =
+constexpr std::uint32_t getRemainderPacketSize() {
+  std::uint32_t size =
       (windows - maxWindowPerDatagram * (windows / maxWindowPerDatagram)) *
       windowByteSize;
 
   return (size) ? size + packetHeaderSize : 0;
 }
-inline constexpr quint32 remainderPacketSize = getRemainderPacketSize();
-inline const quint32 maxPacketNumber =
+inline constexpr std::uint32_t remainderPacketSize = getRemainderPacketSize();
+inline const std::uint32_t maxPacketNumber =
     std::ceil(static_cast<qreal>(windows) / maxWindowPerDatagram);
 inline const QImage frame{width, height, QImage::Format_RGB888};
-inline constexpr quint32 protocolType = (mode == Mode::ROW_WISE) ? 2 : 1;
-inline constexpr quint16 unicastPort = 3000;
-inline constexpr quint16 port = 10000;
-inline constexpr quint16 commandPort{2000};
-inline constexpr quint16 firmwarePort{1997};
+inline constexpr std::uint32_t protocolType = (mode == Mode::ROW_WISE) ? 2 : 1;
+inline constexpr std::uint16_t unicastPort = 3000;
+inline constexpr std::uint16_t port = 10000;
+inline constexpr std::uint16_t commandPort{2000};
+inline constexpr std::uint16_t firmwarePort{1997};
 inline const QString commandMagic{"SEM"};
 inline const QString broadcastAddress{"10.6.255.255"};
-inline constexpr quint8 factor = 8 - colorDepth;
+inline constexpr std::uint8_t factor = 8 - colorDepth;
 
 // Configuration check
 static_assert(rows > 0);

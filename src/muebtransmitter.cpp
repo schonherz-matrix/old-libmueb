@@ -30,7 +30,7 @@ class MuebTransmitterPrivate {
 
   QUdpSocket socket;
   QHostAddress targetAddress{libmueb::defaults::broadcastAddress};
-  quint16 targetPort = libmueb::defaults::port;
+  std::uint16_t targetPort = libmueb::defaults::port;
   FrameCompressor compressor;
   QThread compressorThread;
 };
@@ -49,7 +49,7 @@ MuebTransmitter::~MuebTransmitter() = default;
  * http://threadlocalmutex.com/?p=48
  * http://threadlocalmutex.com/?page_id=60
  */
-inline static quint8 reduceColor(quint8 c) {
+inline static std::uint8_t reduceColor(std::uint8_t c) {
   if (libmueb::defaults::colorDepth == 3)
     return (c * 225 + 4096) >> 13;
   else if (libmueb::defaults::colorDepth == 4)
@@ -58,8 +58,9 @@ inline static quint8 reduceColor(quint8 c) {
   return c;
 }
 
-static void compressColor(QByteArray& datagram, const quint8* const& frameData,
-                          quint32 redIdx, quint32 x) {
+static void compressColor(QByteArray& datagram,
+                          const std::uint8_t* const& frameData,
+                          std::uint32_t redIdx, std::uint32_t x) {
   using namespace libmueb::defaults;
 
   if (colorDepth < 5) {  // < 5 bit color compression
@@ -94,7 +95,7 @@ void FrameCompressor::compressFrame(QImage frame) {
   datagram.append(packetNumber);
 
   if (mode == libmueb::Mode::ROW_WISE) {
-    for (quint32 pixelIdx = 0; pixelIdx < pixels; ++pixelIdx) {
+    for (std::uint32_t pixelIdx = 0; pixelIdx < pixels; ++pixelIdx) {
       compressColor(datagram, frameData, pixelIdx * 3, pixelIdx);
 
       if ((pixelIdx + 1) % maxPixelPerDatagram == 0) {
@@ -106,12 +107,12 @@ void FrameCompressor::compressFrame(QImage frame) {
       }
     }
   } else if (mode == libmueb::Mode::WINDOW_WISE) {
-    for (quint32 windowIdx = 0; windowIdx < windows; ++windowIdx) {
+    for (std::uint32_t windowIdx = 0; windowIdx < windows; ++windowIdx) {
       auto row = (windowIdx / windowPerRow) * verticalPixelUnit;
       auto col = (windowIdx % windowPerRow) * horizontalPixelUnit;
 
-      for (quint32 y = 0; y < verticalPixelUnit; ++y) {
-        for (quint32 x = 0; x < horizontalPixelUnit * 3; x += 3) {
+      for (std::uint32_t y = 0; y < verticalPixelUnit; ++y) {
+        for (std::uint32_t x = 0; x < horizontalPixelUnit * 3; x += 3) {
           auto redIdx = (width * 3) * (row + y) + (col * 3 + x);
 
           compressColor(datagram, frameData, redIdx, x);
@@ -157,8 +158,8 @@ void MuebTransmitter::sendFrame(QPixmap frame) {
   sendFrame(frame.toImage().convertToFormat(QImage::Format_RGB888));
 }
 
-void MuebTransmitter::sendPixel(QRgb pixel, bool windowIdx, quint8 pixelIdx,
-                                QString targetAddress) {
+void MuebTransmitter::sendPixel(QRgb pixel, bool windowIdx,
+                                std::uint8_t pixelIdx, QString targetAddress) {
   Q_D(MuebTransmitter);
   QHostAddress addr(targetAddress);
   if (addr.isNull()) {

@@ -3,6 +3,7 @@
 #include <QNetworkDatagram>
 #include <QThread>
 #include <QUdpSocket>
+#include <cstdint>
 
 class MuebReceiverPrivate {
   Q_DISABLE_COPY(MuebReceiverPrivate)
@@ -30,7 +31,7 @@ class MuebReceiverPrivate {
   }
 
   QUdpSocket socket;
-  quint16 port{libmueb::defaults::port};
+  std::uint16_t port{libmueb::defaults::port};
   DatagramProcessor processor;
   QThread thread;
 };
@@ -45,9 +46,10 @@ MuebReceiver::MuebReceiver()
 
 MuebReceiver::~MuebReceiver() = default;
 
-static void uncompressColor(const QByteArray& data, quint8* const& frameData,
-                            const quint32& frameIdx, quint32& dataIdx,
-                            const quint32& x) {
+static void uncompressColor(const QByteArray& data,
+                            std::uint8_t* const& frameData,
+                            const std::uint32_t& frameIdx,
+                            std::uint32_t& dataIdx, const std::uint32_t& x) {
   using namespace libmueb::defaults;
 
   if (colorDepth < 5) {
@@ -90,7 +92,7 @@ void DatagramProcessor::processDatagram(const QByteArray datagram) {
     return;
   }
 
-  const quint32 packetNumber = datagram[1];
+  const std::uint32_t packetNumber = datagram[1];
   if (packetNumber >= maxPacketNumber || packetNumber < 0) {
     datagramUncompressError();
     return;
@@ -100,7 +102,7 @@ void DatagramProcessor::processDatagram(const QByteArray datagram) {
   auto dataIdx = packetHeaderSize;
 
   if (protocol == 2) {
-    for (quint32 pixelIdx = packetNumber * maxPixelPerDatagram;
+    for (std::uint32_t pixelIdx = packetNumber * maxPixelPerDatagram;
          pixelIdx < (packetNumber + 1) * maxPixelPerDatagram; ++pixelIdx) {
       // Check datagram index
       // Drop invalid packet
@@ -113,15 +115,15 @@ void DatagramProcessor::processDatagram(const QByteArray datagram) {
       uncompressColor(datagram, frameData, frameIdx, dataIdx, pixelIdx);
     }
   } else if (protocol == 1) {
-    for (quint32 windowIdx = packetNumber * maxWindowPerDatagram;
+    for (std::uint32_t windowIdx = packetNumber * maxWindowPerDatagram;
          windowIdx < (packetNumber + 1) * maxWindowPerDatagram &&
          windowIdx < windows;
          ++windowIdx) {
       auto row = (windowIdx / windowPerRow) * verticalPixelUnit;
       auto col = (windowIdx % windowPerRow) * horizontalPixelUnit;
 
-      for (quint32 y = 0; y < verticalPixelUnit; ++y) {
-        for (quint32 x = 0; x < horizontalPixelUnit * 3; x += 3) {
+      for (std::uint32_t y = 0; y < verticalPixelUnit; ++y) {
+        for (std::uint32_t x = 0; x < horizontalPixelUnit * 3; x += 3) {
           // Check datagram index
           // Drop invalid packet
           if (dataIdx >= datagram.size()) {

@@ -4,6 +4,7 @@
 #include <QImage>
 #include <QObject>
 #include <QPixmap>
+#include <cstdint>
 #include <memory>
 
 #include "libmueb_global.h"
@@ -32,7 +33,7 @@ class LIBMUEB_EXPORT MuebTransmitter final : public QObject {
  public slots:
   void sendFrame(QImage frame);
   void sendFrame(QPixmap frame);
-  void sendPixel(QRgb pixel, bool windowIdx, quint8 pixelIdx,
+  void sendPixel(QRgb pixel, bool windowIdx, std::uint8_t pixelIdx,
                  QString targetAddress);
 
  private slots:
