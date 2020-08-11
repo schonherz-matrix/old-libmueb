@@ -33,6 +33,8 @@ endif()
 add_library(
   mueb
   src/muebtransmitter.cpp
+  src/datagramprocessor.h
+  src/datagramprocessor.cpp
   src/muebreceiver.cpp
   src/muebcontroller.cpp
   include/libmueb/mueb.h
@@ -40,8 +42,7 @@ add_library(
   include/libmueb/muebtransmitter.h
   include/libmueb/muebreceiver.h
   include/libmueb/libmuebconfig.h
-  include/libmueb/muebcontroller.h
-  )
+  include/libmueb/muebcontroller.h)
 
 add_library(
   muebtransmitter
@@ -49,8 +50,10 @@ add_library(
   include/libmueb/muebtransmitter.h include/libmueb/libmuebconfig.h)
 
 add_library(
-  muebreceiver src/muebreceiver.cpp include/libmueb/libmueb_global.h
-               include/libmueb/muebreceiver.h include/libmueb/libmuebconfig.h)
+  muebreceiver
+  src/datagramprocessor.h src/datagramprocessor.cpp src/muebreceiver.cpp
+  include/libmueb/libmueb_global.h include/libmueb/muebreceiver.h
+  include/libmueb/libmuebconfig.h)
 
 add_library(libmueb::mueb ALIAS mueb)
 add_library(libmueb::muebtransmitter ALIAS muebtransmitter)
