@@ -1,9 +1,9 @@
-#ifndef DATAGRAMPROCESSOR_H
-#define DATAGRAMPROCESSOR_H
+#pragma once
 
-#include <QObject>
-#include <QImage>
 #include <libmuebconfig.h>
+
+#include <QImage>
+#include <QObject>
 
 class DatagramProcessor : public QObject {
   Q_OBJECT
@@ -20,5 +20,3 @@ class DatagramProcessor : public QObject {
  private:
   QImage m_frame{libmueb::defaults::frame};
 };
-
-#endif  // DATAGRAMPROCESSOR_H

@@ -1,5 +1,4 @@
-#ifndef LIBMUEBCONFIG_H
-#define LIBMUEBCONFIG_H
+#pragma once
 
 #include <QImage>
 #include <QString>
@@ -84,5 +83,3 @@ static_assert(mode == Mode::WINDOW_WISE || remainderPacketSize == 0);
 }  // namespace defaults
 
 }  // namespace libmueb
-
-#endif  // LIBMUEBCONFIG_H

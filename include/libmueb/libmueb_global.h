@@ -1,5 +1,4 @@
-#ifndef LIBMUEB_GLOBAL_H
-#define LIBMUEB_GLOBAL_H
+#pragma once
 
 #include <QtCore/qglobal.h>
 #include <libmuebconfig.h>
@@ -13,5 +12,3 @@
 #else
 #define LIBMUEB_EXPORT
 #endif
-
-#endif  // LIBMUEB_GLOBAL_H

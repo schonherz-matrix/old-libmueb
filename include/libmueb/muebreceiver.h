@@ -1,5 +1,4 @@
-#ifndef MUEBRECEIVER_H
-#define MUEBRECEIVER_H
+#pragma once
 
 #include <QImage>
 #include <QObject>
@@ -27,5 +26,3 @@ class LIBMUEB_EXPORT MuebReceiver final : public QObject {
   ~MuebReceiver();
   void readPendingDatagrams();
 };
-
-#endif  // MUEBRECEIVER_H

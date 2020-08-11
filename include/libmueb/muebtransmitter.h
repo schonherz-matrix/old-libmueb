@@ -1,5 +1,4 @@
-#ifndef MUEBTRANSMITTER_H
-#define MUEBTRANSMITTER_H
+#pragma once
 
 #include <QImage>
 #include <QObject>
@@ -36,5 +35,3 @@ class LIBMUEB_EXPORT MuebTransmitter final : public QObject {
   MuebTransmitter();
   ~MuebTransmitter();
 };
-
-#endif  // MUEBTRANSMITTER_H

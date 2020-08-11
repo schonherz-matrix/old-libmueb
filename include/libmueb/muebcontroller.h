@@ -1,5 +1,4 @@
-#ifndef MUEBCONTROLLER_H
-#define MUEBCONTROLLER_H
+#pragma once
 
 #include <QByteArray>
 #include <QFile>
@@ -61,5 +60,3 @@ class LIBMUEB_EXPORT MuebController final : public QObject {
   void closeTcpSocket();
 #endif
 };
-
-#endif  // MUEBCONTROLLER_H

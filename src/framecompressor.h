@@ -1,5 +1,4 @@
-#ifndef FRAMECOMPRESSOR_H
-#define FRAMECOMPRESSOR_H
+#pragma once
 
 #include <QObject>
 
@@ -12,5 +11,3 @@ class FrameCompressor : public QObject {
  signals:
   void datagramReady(QByteArray datagram);
 };
-
-#endif  // FRAMECOMPRESSOR_H
