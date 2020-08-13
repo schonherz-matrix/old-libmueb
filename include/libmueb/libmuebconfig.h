@@ -19,6 +19,9 @@ inline constexpr std::uint32_t verticalPixelUnit{2};
 inline constexpr std::uint32_t horizontalPixelUnit{2};
 inline constexpr std::uint8_t colorDepth{3};
 
+// Send packets to localhost
+inline constexpr bool debugMode{false};
+
 // Calculated, software specific constants
 inline constexpr std::uint32_t pixelPerWindow{verticalPixelUnit *
                                               horizontalPixelUnit};
@@ -54,7 +57,8 @@ inline constexpr std::uint16_t port{10000};
 inline constexpr std::uint16_t commandPort{2000};
 inline constexpr std::uint16_t firmwarePort{1997};
 inline constexpr const char* const commandMagic{"SEM"};
-inline constexpr const char* const broadcastAddress{"10.6.255.255"};
+inline constexpr const char* const broadcastAddress{
+    (debugMode) ? "127.0.0.1" : "10.6.255.255"};
 inline constexpr std::uint8_t factor{8 - colorDepth};
 
 // Configuration check
