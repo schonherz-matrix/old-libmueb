@@ -23,9 +23,10 @@ class MuebControllerPrivate {
                      &MuebController::readPendingDatagrams);
 #ifdef Q_OS_WINDOWS
     QObject::connect(&tcpSocket, &QTcpSocket::bytesWritten, q,
+
                      &MuebController::closeTcpSocket);
-  }
 #endif
+  }
 
   QUdpSocket udpSocket;
   QTcpSocket tcpSocket;
