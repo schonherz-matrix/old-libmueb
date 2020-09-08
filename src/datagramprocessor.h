@@ -11,6 +11,8 @@ class DatagramProcessor : public QObject {
  public:
   DatagramProcessor();
 
+  QImage frame() const;
+
  public slots:
   void processDatagram(const QByteArray datagram);
 

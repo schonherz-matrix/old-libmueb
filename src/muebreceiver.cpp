@@ -43,6 +43,8 @@ MuebReceiver& MuebReceiver::getInstance() {
   return instance;
 }
 
+QImage MuebReceiver::frame() const { return d_ptr->processor.frame(); }
+
 MuebReceiver::MuebReceiver()
     : d_ptr(std::make_unique<MuebReceiverPrivate>(this)) {}
 

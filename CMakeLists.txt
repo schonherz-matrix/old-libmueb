@@ -48,10 +48,9 @@ add_library(
 
 add_library(
   muebtransmitter
-  src/framecompressor.cpp
-  src/framecompressor.h
-  src/muebtransmitter.cpp include/libmueb/libmueb_global.h
-  include/libmueb/muebtransmitter.h include/libmueb/libmuebconfig.h)
+  src/framecompressor.cpp src/framecompressor.h src/muebtransmitter.cpp
+  include/libmueb/libmueb_global.h include/libmueb/muebtransmitter.h
+  include/libmueb/libmuebconfig.h)
 
 add_library(
   muebreceiver

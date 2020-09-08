@@ -39,6 +39,8 @@ inline void datagramUncompressError() {
 
 DatagramProcessor::DatagramProcessor() { m_frame.fill(Qt::black); }
 
+QImage DatagramProcessor::frame() const { return m_frame; }
+
 void DatagramProcessor::processDatagram(const QByteArray datagram) {
   using namespace libmueb::defaults;
 

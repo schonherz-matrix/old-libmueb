@@ -12,9 +12,12 @@ class LIBMUEB_EXPORT MuebReceiver final : public QObject {
   Q_OBJECT
   Q_DECLARE_PRIVATE(MuebReceiver)
   Q_DISABLE_COPY(MuebReceiver)
+  Q_PROPERTY(QImage frame READ frame NOTIFY frameChanged)
 
  public:
   static MuebReceiver& getInstance();
+
+  QImage frame() const;
 
  signals:
   void frameChanged(QImage f);
