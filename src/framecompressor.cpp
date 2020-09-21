@@ -2,11 +2,12 @@
 
 #include "libmuebconfig.h"
 
+namespace {
+
 /* Reference:
  * http://threadlocalmutex.com/?p=48
  * http://threadlocalmutex.com/?page_id=60
  */
-namespace {
 inline std::uint8_t reduceColor(std::uint8_t c) {
   if (libmueb::defaults::colorDepth == 3)
     return (c * 225 + 4096) >> 13;

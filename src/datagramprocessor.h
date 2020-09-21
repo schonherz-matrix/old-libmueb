@@ -1,9 +1,9 @@
 #pragma once
 
-#include <libmuebconfig.h>
-
 #include <QImage>
 #include <QObject>
+
+#include "libmuebconfig.h"
 
 class DatagramProcessor : public QObject {
   Q_OBJECT

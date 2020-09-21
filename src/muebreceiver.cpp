@@ -15,11 +15,9 @@ class MuebReceiverPrivate {
 
  public:
   explicit MuebReceiverPrivate(MuebReceiver* receiver) : q_ptr(receiver) {
-    Q_Q(MuebReceiver);
-
     socket.bind(port);
 
-    QObject::connect(&socket, &QUdpSocket::readyRead, q,
+    QObject::connect(&socket, &QUdpSocket::readyRead, receiver,
                      &MuebReceiver::readPendingDatagrams);
     QObject::connect(&processor, &DatagramProcessor::frameReady, receiver,
                      &MuebReceiver::frameChanged);
