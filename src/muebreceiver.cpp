@@ -24,18 +24,21 @@ class MuebReceiverPrivate {
     QObject::connect(&processor, &DatagramProcessor::frameReady, receiver,
                      &MuebReceiver::frameChanged);
 
+    processor.moveToThread(&processorThread);
+    processorThread.start();
+
     qInfo() << "[MuebReceiver] UDP Socket will receive packets on port" << port;
   }
 
   ~MuebReceiverPrivate() {
-    thread.quit();
-    thread.wait();
+    processorThread.quit();
+    processorThread.wait();
   }
 
   QUdpSocket socket;
   std::uint16_t port{libmueb::defaults::port};
   DatagramProcessor processor;
-  QThread thread;
+  QThread processorThread;
 };
 
 MuebReceiver& MuebReceiver::getInstance() {
