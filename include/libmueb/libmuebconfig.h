@@ -19,38 +19,22 @@ inline constexpr std::uint32_t verticalPixelUnit{2};
 inline constexpr std::uint32_t horizontalPixelUnit{2};
 inline constexpr std::uint8_t colorDepth{3};
 
+// Debug specific constants
 // Send packets to localhost
 inline constexpr bool debugMode{false};
 
-// Calculated, software specific constants
+// Software specific constants
 inline constexpr std::uint32_t pixelPerWindow{verticalPixelUnit *
                                               horizontalPixelUnit};
 inline constexpr std::uint32_t windowPerRow{roomPerRow * windowPerRoom};
 inline constexpr std::uint32_t windows{rows * windowPerRow};
 inline constexpr std::uint32_t pixels{windows * pixelPerWindow};
-inline constexpr std::uint32_t windowByteSize =
-    (colorDepth == 3 || colorDepth == 4) ? pixelPerWindow * 3 / 2
-                                         : pixelPerWindow * 3;
 inline constexpr std::uint32_t width{windowPerRow * horizontalPixelUnit};
 inline constexpr std::uint32_t height{rows * verticalPixelUnit};
-inline constexpr Mode mode{Mode::ROW_WISE};
-inline constexpr std::uint32_t maxWindowPerDatagram{208};
-inline constexpr std::uint32_t maxPixelPerDatagram{maxWindowPerDatagram *
-                                                   pixelPerWindow};
-inline constexpr std::uint32_t packetHeaderSize{2};
-inline constexpr std::uint32_t packetSize{
-    maxWindowPerDatagram * windowByteSize + packetHeaderSize};
-constexpr std::uint32_t getRemainderPacketSize() {
-  std::uint32_t size{
-      (windows - maxWindowPerDatagram * (windows / maxWindowPerDatagram)) *
-      windowByteSize};
+inline constexpr std::uint8_t factor{8 - colorDepth};
 
-  return (size) ? size + packetHeaderSize : 0;
-}
-inline constexpr std::uint32_t remainderPacketSize{getRemainderPacketSize()};
-inline const std::uint32_t maxPacketNumber{static_cast<std::uint32_t>(
-    std::ceil(static_cast<float>(windows) / maxWindowPerDatagram))};
-inline const QImage frame{width, height, QImage::Format_RGB888};
+// Network protocol specific constants
+inline constexpr Mode mode{Mode::ROW_WISE};
 inline constexpr std::uint32_t protocolType{(mode == Mode::ROW_WISE) ? 2 : 1};
 inline constexpr std::uint16_t unicastPort{3000};
 inline constexpr std::uint16_t port{10000};
@@ -59,7 +43,30 @@ inline constexpr std::uint16_t firmwarePort{1997};
 inline constexpr const char* const commandMagic{"SEM"};
 inline constexpr const char* const broadcastAddress{
     (debugMode) ? "127.0.0.1" : "10.6.255.255"};
-inline constexpr std::uint8_t factor{8 - colorDepth};
+inline constexpr std::uint32_t windowByteSize =
+    (colorDepth == 3 || colorDepth == 4) ? pixelPerWindow * 3 / 2
+                                         : pixelPerWindow * 3;
+inline constexpr std::uint32_t maxWindowPerDatagram{windows};
+inline constexpr std::uint32_t packetHeaderSize{2};
+inline constexpr std::uint32_t packetSize{
+    maxWindowPerDatagram * windowByteSize + packetHeaderSize};
+inline constexpr std::uint32_t maxPixelPerDatagram{maxWindowPerDatagram *
+                                                   pixelPerWindow};
+
+inline constexpr std::uint32_t getRemainderPacketSize() {
+  std::uint32_t size{
+      (windows - maxWindowPerDatagram * (windows / maxWindowPerDatagram)) *
+      windowByteSize};
+
+  return (size) ? size + packetHeaderSize : 0;
+}
+
+inline constexpr std::uint32_t remainderPacketSize{getRemainderPacketSize()};
+inline const std::uint32_t maxPacketNumber{static_cast<std::uint32_t>(
+    std::ceil(static_cast<float>(windows) / maxWindowPerDatagram))};
+
+// Default constructed objects
+inline const QImage frame{width, height, QImage::Format_RGB888};
 
 // Configuration check
 static_assert(rows > 0);
