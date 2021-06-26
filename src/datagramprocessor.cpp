@@ -10,15 +10,21 @@ void uncompressColor(const QByteArray& data, std::uint8_t* const& frameData,
 
   if (colorDepth < 5) {
     if (x % 2 == 0) {
-      frameData[frameIdx] = data[dataIdx] & 0xf0;                  // R(G)
-      frameData[frameIdx + 1] = (data[dataIdx] & 0x0f) << factor;  // (R)G
-      frameData[frameIdx + 2] = data[dataIdx + 1] & 0xf0;          // B(R)
+      frameData[frameIdx] = (data[dataIdx] & 0xf0)
+                            << (factor - colorDepth);  // R(G)
+      frameData[frameIdx + 1] = (data[dataIdx] & 0x0f)
+                                << factor << (factor - colorDepth);  // (R)G
+      frameData[frameIdx + 2] = (data[dataIdx + 1] & 0xf0)
+                                << (factor - colorDepth);  // B(R)
 
       dataIdx++;
     } else {
-      frameData[frameIdx] = (data[dataIdx] & 0x0f) << factor;          // (B)R
-      frameData[frameIdx + 1] = data[dataIdx + 1] & 0xf0;              // G(B)
-      frameData[frameIdx + 2] = (data[dataIdx + 1] & 0x0f) << factor;  // (G)B
+      frameData[frameIdx] = (data[dataIdx] & 0x0f)
+                            << factor << (factor - colorDepth);  // (B)R
+      frameData[frameIdx + 1] = (data[dataIdx + 1] & 0xf0)
+                                << (factor - colorDepth);  // G(B)
+      frameData[frameIdx + 2] = (data[dataIdx + 1] & 0x0f)
+                                << factor << (factor - colorDepth);  // (G)B
 
       dataIdx += 2;
     }

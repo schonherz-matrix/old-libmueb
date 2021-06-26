@@ -31,15 +31,14 @@ inline constexpr std::uint32_t windows{rows * windowPerRow};
 inline constexpr std::uint32_t pixels{windows * pixelPerWindow};
 inline constexpr std::uint32_t width{windowPerRow * horizontalPixelUnit};
 inline constexpr std::uint32_t height{rows * verticalPixelUnit};
-inline constexpr std::uint8_t factor{8 - colorDepth};
+inline constexpr std::uint8_t factor{4};
 
 // Network protocol specific constants
 inline constexpr Mode mode{Mode::ROW_WISE};
 inline constexpr std::uint32_t protocolType{(mode == Mode::ROW_WISE) ? 2 : 1};
-inline constexpr std::uint16_t unicastPort{3000};
-inline constexpr std::uint16_t port{10000};
-inline constexpr std::uint16_t commandPort{2000};
-inline constexpr std::uint16_t firmwarePort{1997};
+inline constexpr std::uint16_t port{50001};
+inline constexpr std::uint16_t commandPort{50000};
+inline constexpr std::uint16_t firmwarePort{50002};
 inline constexpr const char* const commandMagic{"SEM"};
 inline constexpr const char* const broadcastAddress{
     (debugMode) ? "127.0.0.1" : "10.6.255.255"};
