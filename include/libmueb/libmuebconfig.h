@@ -17,7 +17,7 @@ inline constexpr std::uint32_t roomPerRow{8};
 inline constexpr std::uint32_t windowPerRoom{2};
 inline constexpr std::uint32_t verticalPixelUnit{2};
 inline constexpr std::uint32_t horizontalPixelUnit{2};
-inline constexpr std::uint8_t colorDepth{3};
+inline constexpr std::uint8_t colorDepth{4};
 
 // Debug specific constants
 // Send packets to localhost
